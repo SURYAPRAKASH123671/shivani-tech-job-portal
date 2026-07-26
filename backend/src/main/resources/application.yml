@@ -2,6 +2,10 @@ server:
   port: ${PORT:${SERVER_PORT:8080}}
 
 spring:
+  main:
+    banner-mode: off
+  jmx:
+    enabled: false
   datasource:
     url: ${DB_URL:jdbc:mysql://localhost:3306/shivani_job_portal?createDatabaseIfNotExist=true}
     username: ${DB_USERNAME:root}
@@ -47,6 +51,12 @@ spring:
     multipart:
       max-file-size: 5MB
       max-request-size: 5MB
+
+springdoc:
+  # Restricts the class-scanning springdoc does at startup to build the OpenAPI model to just
+  # our own controllers, instead of the whole classpath - meaningfully cuts reflection-bound
+  # startup work on a CPU-throttled host.
+  packages-to-scan: com.shivanitech.jobportal.controller
 
 management:
   endpoints:
