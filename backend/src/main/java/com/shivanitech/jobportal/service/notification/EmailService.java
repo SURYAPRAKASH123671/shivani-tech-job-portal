@@ -33,6 +33,7 @@ public class EmailService {
             message.setSubject(subject);
             message.setText(body);
             mailSender.send(message);
+            log.info("Email sent to={} subject='{}'", to, subject);
             return true;
         } catch (Exception ex) {
             log.warn("[EMAIL NOT SENT - no mail provider configured] to={} subject='{}' body='{}' (reason: {}). " +

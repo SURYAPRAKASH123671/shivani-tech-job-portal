@@ -47,6 +47,12 @@ spring:
           auth: true
           starttls:
             enable: true
+          # Without these, an unreachable/misconfigured SMTP host can hang the calling
+          # request (registration, resend-OTP) indefinitely instead of failing fast into
+          # EmailService's catch block.
+          connectiontimeout: 5000
+          timeout: 5000
+          writetimeout: 5000
   servlet:
     multipart:
       max-file-size: 5MB

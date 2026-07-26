@@ -18,12 +18,30 @@ a real deployment. None of these need code changes — they're all already wired
 |---|---|---|
 | `MAIL_HOST` | *(empty — logs instead of sending)* | e.g. `smtp.gmail.com` or `smtp.sendgrid.net` |
 | `MAIL_PORT` | `587` | |
-| `MAIL_USERNAME` | *(empty)* | For Gmail, your address; for SendGrid, literally `apikey` |
-| `MAIL_PASSWORD` | *(empty)* | For Gmail, an **app password** (not your account password); for SendGrid, your API key |
-| `MAIL_FROM` | `no-reply@shivanitech.in` | Must be a domain you control if using SendGrid/SES (SPF/DKIM) |
+| `MAIL_USERNAME` | *(empty)* | For Gmail, your full Gmail address; for SendGrid, literally `apikey` |
+| `MAIL_PASSWORD` | *(empty)* | For Gmail, a 16-character **app password** (not your account password — see below); for SendGrid, your API key |
+| `MAIL_FROM` | `no-reply@shivanitech.in` | **For Gmail, this must be set to the same address as `MAIL_USERNAME`** — Gmail's SMTP servers reject or silently rewrite a `From` header that doesn't match the authenticated account. Only SendGrid/SES let you send from an arbitrary domain-verified address. |
 | `TWILIO_ACCOUNT_SID` | *(empty)* | From the Twilio console |
 | `TWILIO_AUTH_TOKEN` | *(empty)* | From the Twilio console — treat as a secret |
 | `TWILIO_FROM_NUMBER` | *(empty)* | A Twilio number you've purchased/verified |
+
+### Setting up Gmail SMTP (simplest option for OTP delivery)
+
+1. The Gmail account must have **2-Step Verification** turned on (Google Account → Security). App
+   passwords aren't available without it.
+2. Go to <https://myaccount.google.com/apppasswords>, create an app password (name it something
+   like "Shivani Job Portal"), and copy the 16-character value it generates.
+3. Set:
+   ```env
+   MAIL_HOST=smtp.gmail.com
+   MAIL_PORT=587
+   MAIL_USERNAME=your-address@gmail.com
+   MAIL_PASSWORD=<the 16-character app password, no spaces>
+   MAIL_FROM=your-address@gmail.com
+   ```
+4. Gmail's free SMTP relay caps outgoing mail at roughly 500 messages/day per account — fine for
+   OTP volume on a small deployment, not a scale-up option. Move to SendGrid/SES (same variables,
+   different host/username) if you outgrow it.
 
 ## Safe to leave at defaults for most deployments
 
