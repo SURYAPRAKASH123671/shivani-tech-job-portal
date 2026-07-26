@@ -19,6 +19,7 @@ import com.shivanitech.jobportal.repository.CompanyRepository;
 import com.shivanitech.jobportal.repository.UserRepository;
 import com.shivanitech.jobportal.security.JwtUtil;
 import com.shivanitech.jobportal.service.notification.EmailService;
+import com.shivanitech.jobportal.service.notification.SmsService;
 import lombok.RequiredArgsConstructor;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.authentication.AuthenticationManager;
@@ -41,6 +42,7 @@ public class AuthService {
     private final AuthenticationManager authenticationManager;
     private final JwtUtil jwtUtil;
     private final EmailService emailService;
+    private final SmsService smsService;
 
     @Value("${app.otp.expiry-minutes}")
     private long otpExpiryMinutes;
@@ -149,6 +151,16 @@ public class AuthService {
                 .status(CompanyStatus.PENDING)
                 .build();
         companyRepository.save(company);
+
+        String contactEmail = request.getContactEmail() != null && !request.getContactEmail().isBlank()
+                ? request.getContactEmail() : user.getEmail();
+        String registeredMessage = "Thanks for registering \"" + company.getName() + "\" on Shivani "
+                + "Technologies. An administrator will review your details shortly - you'll be able "
+                + "to post job openings as soon as your company is verified.";
+        emailService.send(contactEmail, "Company registration received", registeredMessage);
+        if (request.getContactPhone() != null && !request.getContactPhone().isBlank()) {
+            smsService.send(request.getContactPhone(), registeredMessage);
+        }
 
         String token = jwtUtil.generateToken(user.getEmail(), user.getRole().name());
         return AuthResponse.builder()

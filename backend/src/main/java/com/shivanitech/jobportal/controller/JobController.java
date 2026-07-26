@@ -3,6 +3,8 @@ package com.shivanitech.jobportal.controller;
 import com.shivanitech.jobportal.dto.job.JobRequest;
 import com.shivanitech.jobportal.dto.job.JobResponse;
 import com.shivanitech.jobportal.dto.job.JobSearchCriteria;
+import com.shivanitech.jobportal.dto.lookup.NameResponse;
+import com.shivanitech.jobportal.service.CompanyService;
 import com.shivanitech.jobportal.service.JobService;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -21,6 +23,7 @@ import java.util.UUID;
 public class JobController {
 
     private final JobService jobService;
+    private final CompanyService companyService;
 
     // --- Admin: full CRUD over jobs ---
 
@@ -51,6 +54,11 @@ public class JobController {
     }
 
     // --- Public / candidate: search and view ---
+
+    @GetMapping("/api/jobs/companies")
+    public List<NameResponse> listActiveCompanies() {
+        return companyService.listActiveCompanyNames();
+    }
 
     @GetMapping("/api/jobs/search")
     public Page<JobResponse> searchJobs(JobSearchCriteria criteria, Pageable pageable) {

@@ -47,7 +47,10 @@ and hard to audit. This system centralizes the entire pipeline:
 - Login, JWT-based auth, role-based access control
 - Full CRUD for job categories, designations, locations, and skills
 - Full job CRUD (create, **edit**, close, delete) with a filter for admin-posted vs. employer-posted
-- Company verification workflow (verify / reject pending company registrations)
+- **Create recruitment company accounts directly** (activated immediately), in addition to verifying
+  companies that self-registered
+- Company verification workflow (verify / reject pending company registrations, each triggering an
+  email/SMS notification to the company)
 - Employee account creation, with enable/disable control
 - Targeted or broadcast email/SMS to candidates, employees, or companies
 - Aggregate stats dashboard
@@ -55,7 +58,8 @@ and hard to audit. This system centralizes the entire pipeline:
 ### Candidates
 - Registration with OTP email verification
 - Login, JWT session
-- Job search/filter by category, designation, location, skill, salary, experience, and qualification
+- Job search/filter by company, category, designation, location, skill, salary, experience, and
+  qualification
 - Apply to jobs (with duplicate-application prevention), track status in "My Applications"
 - Full profile management: personal, education, professional, skills (from a managed list, plus
   free-text custom skills), and career preferences
@@ -64,8 +68,12 @@ and hard to audit. This system centralizes the entire pipeline:
 - Automatic application-confirmation email on apply
 
 ### Employer Zone
-- Company self-registration
-- Job posting gated behind admin verification (a company can't post until approved)
+- Company self-registration, with an automatic email/SMS confirmation that registration was received
+- **Admin can also create a company account directly** — activated immediately (skips the
+  pending-verification step), for a recruiter the admin already knows and is vouching for
+- Job posting gated behind admin verification for self-registered companies (a company can't post
+  until approved)
+- Company receives an email/SMS notification when an admin verifies or rejects their registration
 - Post, **edit**, and close their own job openings
 - View their own jobs list
 

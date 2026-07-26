@@ -3,6 +3,7 @@ import client from '../api/client.js'
 import JobCard from '../components/JobCard.jsx'
 
 const emptyFilters = {
+  companyId: '',
   categoryId: '',
   designationId: '',
   locationId: '',
@@ -13,7 +14,7 @@ const emptyFilters = {
 }
 
 export default function JobSearch() {
-  const [lookups, setLookups] = useState({ categories: [], designations: [], locations: [], skills: [] })
+  const [lookups, setLookups] = useState({ companies: [], categories: [], designations: [], locations: [], skills: [] })
   const [filters, setFilters] = useState(emptyFilters)
   const [jobs, setJobs] = useState([])
   const [totalElements, setTotalElements] = useState(0)
@@ -22,13 +23,15 @@ export default function JobSearch() {
 
   useEffect(() => {
     async function loadLookups() {
-      const [categories, designations, locations, skills] = await Promise.all([
+      const [companies, categories, designations, locations, skills] = await Promise.all([
+        client.get('/api/jobs/companies'),
         client.get('/api/admin/categories'),
         client.get('/api/admin/designations'),
         client.get('/api/admin/locations'),
         client.get('/api/admin/skills'),
       ])
       setLookups({
+        companies: companies.data,
         categories: categories.data,
         designations: designations.data,
         locations: locations.data,
@@ -80,7 +83,8 @@ export default function JobSearch() {
         <p className="text-sm font-medium uppercase tracking-wide text-amber-dark">Job search</p>
         <h1 className="mt-2 text-3xl">Find your next role</h1>
         <p className="mt-2 text-muted">
-          Filter by category, location, skill, salary, or experience — every open position, in one place.
+          Filter by company, category, location, skill, salary, or experience — every open position,
+          in one place.
         </p>
       </div>
 
@@ -88,6 +92,7 @@ export default function JobSearch() {
         onSubmit={runSearch}
         className="mt-8 grid grid-cols-1 gap-3 rounded-lg border border-line bg-surface p-5 sm:grid-cols-2 lg:grid-cols-4"
       >
+        <Select label="Company" value={filters.companyId} onChange={update('companyId')} options={lookups.companies} />
         <Select label="Category" value={filters.categoryId} onChange={update('categoryId')} options={lookups.categories} />
         <Select
           label="Designation"

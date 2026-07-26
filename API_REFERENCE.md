@@ -62,6 +62,11 @@ Query params (all optional): `categoryId`, `designationId`, `locationId`, `skill
 **Response `200`:** full job detail (see `JobResponse` shape under Admin Jobs below). **`404`** if
 not found. **`400`** if `{id}` isn't a valid UUID.
 
+### `GET /api/jobs/companies`
+**Response `200`:** `[{ "id": "uuid", "name": "Acme Corp" }]` — active (verified) companies only,
+for populating the "Company" filter on the job search page. Deliberately excludes owner/contact
+fields present on the admin-only company endpoints.
+
 ---
 
 ## Admin — Lookups (`/api/admin/categories|designations|locations|skills`) — `ROLE_ADMIN` for
@@ -118,6 +123,17 @@ instead).
 
 ## Admin — Companies (`/api/admin/companies`) — `ROLE_ADMIN`
 
+### `POST /api/admin/companies` — admin creates a company directly (distinct from the public
+self-registration flow) — activated immediately, no PENDING step.
+**Request:**
+```json
+{ "email": "hr@acme.com", "password": "min-6-chars", "companyName": "Acme Corp",
+  "contactEmail": "hr@acme.com", "contactPhone": "9000000000" }
+```
+**Response `201`:** same shape as the list response below, `"status": "ACTIVE"`. Sends an
+email/SMS notification to the company's contact email/phone (or the login email if no contact
+email was given). `409` if the email is already registered.
+
 ### `GET /api/admin/companies?status=PENDING|ACTIVE|REJECTED` (status optional)
 **Response `200`:**
 ```json
@@ -125,7 +141,9 @@ instead).
    "contactPhone": "...", "status": "PENDING", "verifiedAt": null, "createdAt": "..." }]
 ```
 ### `PATCH /api/admin/companies/{id}/verify` — moves to `ACTIVE`. Returns the updated company.
-### `PATCH /api/admin/companies/{id}/reject` — moves to `REJECTED`.
+Sends an email/SMS notification to the company.
+### `PATCH /api/admin/companies/{id}/reject` — moves to `REJECTED`. Sends an email/SMS
+notification to the company.
 
 ---
 

@@ -1,5 +1,14 @@
 # Deployment Report
 
+## Changelog
+
+- **2026-07-26 (requirement-compliance pass):** added admin-direct company creation
+  (`POST /api/admin/companies`), company email/SMS notifications on registration/verify/reject, and
+  a public company filter for job search (`GET /api/jobs/companies` + frontend UI). All verified
+  locally end-to-end before push - **requires a Render redeploy** (frontend is picked up
+  automatically by Vercel) for these to be live; the URLs and demo credentials below are otherwise
+  unaffected.
+
 ## Summary
 
 | | |
