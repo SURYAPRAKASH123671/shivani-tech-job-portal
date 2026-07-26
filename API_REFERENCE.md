@@ -119,6 +119,14 @@ experience value is negative.
 instead).
 ### `GET /api/admin/jobs?postedByAdmin=true|false` — list all jobs, optional filter by source.
 
+### `GET /api/admin/applications` — every application system-wide, for dashboard analytics.
+**Response `200`:**
+```json
+[{ "applicationId": "uuid", "jobId": "uuid", "jobTitle": "...", "companyName": "...",
+   "category": "...", "location": "...", "candidateName": "...", "status": "APPLIED",
+   "appliedAt": "..." }]
+```
+
 ---
 
 ## Admin — Companies (`/api/admin/companies`) — `ROLE_ADMIN`
@@ -249,6 +257,8 @@ Streams the candidate's own uploaded PDF. **`404`** if none uploaded.
 ### `PUT /api/employer/jobs/{id}` — edit your own job. **`403`** if you don't own it.
 ### `PATCH /api/employer/jobs/{id}/close` — close your own job. **`403`** if you don't own it.
 ### `GET /api/employer/jobs` — list your own jobs only.
+### `GET /api/employer/applications` — every application to your own jobs, for dashboard analytics.
+Same response shape as `GET /api/admin/applications`, scoped to your company only.
 
 ---
 

@@ -13,6 +13,7 @@ public interface JobApplicationRepository extends JpaRepository<JobApplication, 
     boolean existsByJobIdAndCandidateId(UUID jobId, UUID candidateId);
     List<JobApplication> findByCandidateId(UUID candidateId);
     List<JobApplication> findByJobId(UUID jobId);
+    List<JobApplication> findByJob_Company_Id(UUID companyId);
     Optional<JobApplication> findByJobIdAndCandidateId(UUID jobId, UUID candidateId);
     List<JobApplication> findTop5ByCandidateIdOrderByAppliedAtDesc(UUID candidateId);
     long countByCandidateId(UUID candidateId);

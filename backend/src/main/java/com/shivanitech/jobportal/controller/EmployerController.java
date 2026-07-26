@@ -1,6 +1,7 @@
 package com.shivanitech.jobportal.controller;
 
 import com.shivanitech.jobportal.dto.company.CompanyResponse;
+import com.shivanitech.jobportal.dto.job.ApplicationSummaryResponse;
 import com.shivanitech.jobportal.dto.job.JobRequest;
 import com.shivanitech.jobportal.dto.job.JobResponse;
 import com.shivanitech.jobportal.service.CompanyService;
@@ -52,5 +53,10 @@ public class EmployerController {
     @GetMapping("/jobs")
     public List<JobResponse> myJobs(Authentication authentication) {
         return jobService.listJobsForEmployer(authentication.getName());
+    }
+
+    @GetMapping("/applications")
+    public List<ApplicationSummaryResponse> myApplications(Authentication authentication) {
+        return jobService.listApplicationsForEmployer(authentication.getName());
     }
 }

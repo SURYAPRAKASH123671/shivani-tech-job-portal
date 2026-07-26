@@ -1,5 +1,6 @@
 package com.shivanitech.jobportal.service;
 
+import com.shivanitech.jobportal.dto.job.ApplicationSummaryResponse;
 import com.shivanitech.jobportal.dto.job.JobApplicationResponse;
 import com.shivanitech.jobportal.dto.job.JobRequest;
 import com.shivanitech.jobportal.dto.job.JobResponse;
@@ -180,6 +181,43 @@ public class JobService {
                 "You've successfully applied to \"" + job.getTitle() + "\""
                         + (job.getCompany() != null ? " at " + job.getCompany().getName() : "")
                         + ". We'll notify you here if your application status changes.");
+    }
+
+    /**
+     * Read-only reporting view for an employer's own applications - distinct from
+     * getMyApplications (the candidate's own view) since it exposes candidate name and job
+     * category/location, which only the receiving company/admin should see, not other candidates.
+     */
+    @Transactional(readOnly = true)
+    public List<ApplicationSummaryResponse> listApplicationsForEmployer(String employerEmail) {
+        Company company = companyRepository.findByUserEmail(employerEmail)
+                .orElseThrow(() -> new ResourceNotFoundException("No company profile for " + employerEmail));
+        return jobApplicationRepository.findByJob_Company_Id(company.getId()).stream()
+                .map(this::toSummary)
+                .toList();
+    }
+
+    /** Same shape, system-wide - admin-only. */
+    @Transactional(readOnly = true)
+    public List<ApplicationSummaryResponse> listAllApplications() {
+        return jobApplicationRepository.findAll().stream()
+                .map(this::toSummary)
+                .toList();
+    }
+
+    private ApplicationSummaryResponse toSummary(JobApplication app) {
+        Job job = app.getJob();
+        return ApplicationSummaryResponse.builder()
+                .applicationId(app.getId())
+                .jobId(job.getId())
+                .jobTitle(job.getTitle())
+                .companyName(job.getCompany() != null ? job.getCompany().getName() : null)
+                .category(job.getCategory() != null ? job.getCategory().getName() : null)
+                .location(job.getLocation() != null ? job.getLocation().getName() : null)
+                .candidateName(app.getCandidate() != null ? app.getCandidate().getFullName() : null)
+                .status(app.getStatus().name())
+                .appliedAt(app.getAppliedAt())
+                .build();
     }
 
     @Transactional(readOnly = true)

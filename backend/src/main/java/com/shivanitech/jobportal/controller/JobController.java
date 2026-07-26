@@ -1,5 +1,6 @@
 package com.shivanitech.jobportal.controller;
 
+import com.shivanitech.jobportal.dto.job.ApplicationSummaryResponse;
 import com.shivanitech.jobportal.dto.job.JobRequest;
 import com.shivanitech.jobportal.dto.job.JobResponse;
 import com.shivanitech.jobportal.dto.job.JobSearchCriteria;
@@ -51,6 +52,11 @@ public class JobController {
     @GetMapping("/api/admin/jobs")
     public List<JobResponse> listAllJobs(@RequestParam(required = false) Boolean postedByAdmin) {
         return jobService.listAllJobs(postedByAdmin);
+    }
+
+    @GetMapping("/api/admin/applications")
+    public List<ApplicationSummaryResponse> listAllApplications() {
+        return jobService.listAllApplications();
     }
 
     // --- Public / candidate: search and view ---
