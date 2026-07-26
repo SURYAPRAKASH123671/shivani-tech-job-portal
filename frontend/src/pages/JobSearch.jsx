@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { useSearchParams } from 'react-router-dom'
 import client from '../api/client.js'
 import JobCard from '../components/JobCard.jsx'
 
@@ -13,9 +14,19 @@ const emptyFilters = {
   qualification: '',
 }
 
+function filtersFromUrl(searchParams) {
+  const fromUrl = { ...emptyFilters }
+  for (const key of Object.keys(emptyFilters)) {
+    const value = searchParams.get(key)
+    if (value) fromUrl[key] = value
+  }
+  return fromUrl
+}
+
 export default function JobSearch() {
+  const [searchParams] = useSearchParams()
   const [lookups, setLookups] = useState({ companies: [], categories: [], designations: [], locations: [], skills: [] })
-  const [filters, setFilters] = useState(emptyFilters)
+  const [filters, setFilters] = useState(() => filtersFromUrl(searchParams))
   const [jobs, setJobs] = useState([])
   const [totalElements, setTotalElements] = useState(0)
   const [loading, setLoading] = useState(true)

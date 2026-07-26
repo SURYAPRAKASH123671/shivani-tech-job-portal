@@ -83,7 +83,7 @@ export default function CandidateDashboard() {
         <Link to="/candidate/profile" className="rounded-md bg-navy px-4 py-2 text-sm font-medium text-white hover:bg-navy-light">
           Edit profile
         </Link>
-        <Link to="/" className="rounded-md border border-line px-4 py-2 text-sm font-medium text-ink hover:border-navy">
+        <Link to="/jobs" className="rounded-md border border-line px-4 py-2 text-sm font-medium text-ink hover:border-navy">
           Browse jobs
         </Link>
         <Link
@@ -101,7 +101,7 @@ export default function CandidateDashboard() {
           {recentApplications.length === 0 ? (
             <div className="mt-3 rounded-lg border border-dashed border-line bg-surface p-8 text-center">
               <p className="text-sm text-muted">You haven't applied to anything yet.</p>
-              <Link to="/" className="mt-2 inline-block text-sm text-navy hover:underline">
+              <Link to="/jobs" className="mt-2 inline-block text-sm text-navy hover:underline">
                 Browse open roles →
               </Link>
             </div>

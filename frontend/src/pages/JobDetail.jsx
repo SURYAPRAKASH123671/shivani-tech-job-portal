@@ -41,7 +41,7 @@ export default function JobDetail() {
     return (
       <div className="mx-auto max-w-3xl px-6 py-10">
         <p className="text-sm text-danger">{loadError}</p>
-        <Link to="/" className="mt-2 inline-block text-sm text-navy hover:underline">
+        <Link to="/jobs" className="mt-2 inline-block text-sm text-navy hover:underline">
           ← Back to search
         </Link>
       </div>
@@ -54,7 +54,7 @@ export default function JobDetail() {
 
   return (
     <div className="mx-auto max-w-3xl px-6 py-10">
-      <Link to="/" className="text-sm text-navy hover:underline">
+      <Link to="/jobs" className="text-sm text-navy hover:underline">
         ← Back to search
       </Link>
 

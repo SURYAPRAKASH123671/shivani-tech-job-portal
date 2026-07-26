@@ -36,7 +36,7 @@ export default function Navbar() {
         <nav
           className={`${menuOpen ? 'flex' : 'hidden'} absolute left-0 right-0 top-full z-40 flex-col gap-4 border-b border-line bg-surface px-6 py-4 text-sm font-medium text-ink shadow-sm md:static md:flex md:w-auto md:flex-row md:items-center md:gap-6 md:border-0 md:bg-transparent md:p-0 md:shadow-none`}
         >
-          <Link to="/" onClick={closeMenu} className="hover:text-navy-light">
+          <Link to="/jobs" onClick={closeMenu} className="hover:text-navy-light">
             Find jobs
           </Link>
 

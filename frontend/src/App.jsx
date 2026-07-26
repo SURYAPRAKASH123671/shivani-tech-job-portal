@@ -1,6 +1,7 @@
 import { Route, Routes } from 'react-router-dom'
 import Navbar from './components/Navbar.jsx'
 import ProtectedRoute from './components/ProtectedRoute.jsx'
+import Landing from './pages/Landing.jsx'
 import Login from './pages/Login.jsx'
 import RegisterCandidate from './pages/RegisterCandidate.jsx'
 import VerifyOtp from './pages/VerifyOtp.jsx'
@@ -23,7 +24,8 @@ export default function App() {
     <div className="min-h-screen bg-canvas">
       <Navbar />
       <Routes>
-        <Route path="/" element={<JobSearch />} />
+        <Route path="/" element={<Landing />} />
+        <Route path="/jobs" element={<JobSearch />} />
         <Route path="/jobs/:id" element={<JobDetail />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register/candidate" element={<RegisterCandidate />} />

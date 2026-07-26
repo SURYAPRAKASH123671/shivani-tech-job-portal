@@ -35,7 +35,7 @@ export default function MyApplications() {
         ) : applications.length === 0 ? (
           <div className="rounded-lg border border-dashed border-line bg-surface p-10 text-center">
             <p className="font-medium text-ink">You haven't applied to anything yet</p>
-            <Link to="/" className="mt-2 inline-block text-sm text-navy hover:underline">
+            <Link to="/jobs" className="mt-2 inline-block text-sm text-navy hover:underline">
               Browse open roles →
             </Link>
           </div>
