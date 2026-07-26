@@ -1,0 +1,38 @@
+package com.shivanitech.jobportal.controller;
+
+import com.shivanitech.jobportal.dto.company.CompanyResponse;
+import com.shivanitech.jobportal.entity.CompanyStatus;
+import com.shivanitech.jobportal.service.CompanyService;
+import lombok.RequiredArgsConstructor;
+import org.springframework.web.bind.annotation.*;
+
+import java.util.List;
+import java.util.UUID;
+
+/**
+ * Admin-only company verification: list registered companies (optionally by
+ * status) and move them between PENDING, ACTIVE (verified, may post jobs),
+ * and REJECTED. Enforced by ROLE_ADMIN globally in SecurityConfig.
+ */
+@RestController
+@RequestMapping("/api/admin/companies")
+@RequiredArgsConstructor
+public class AdminCompanyController {
+
+    private final CompanyService companyService;
+
+    @GetMapping
+    public List<CompanyResponse> listCompanies(@RequestParam(required = false) CompanyStatus status) {
+        return companyService.listCompanies(status);
+    }
+
+    @PatchMapping("/{id}/verify")
+    public CompanyResponse verifyCompany(@PathVariable UUID id) {
+        return companyService.verifyCompany(id);
+    }
+
+    @PatchMapping("/{id}/reject")
+    public CompanyResponse rejectCompany(@PathVariable UUID id) {
+        return companyService.rejectCompany(id);
+    }
+}

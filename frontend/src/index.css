@@ -1,0 +1,16 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-canvas text-ink font-body antialiased;
+  }
+  h1, h2, h3, h4 {
+    @apply font-display font-semibold text-navy;
+  }
+  :focus-visible {
+    outline: 2px solid theme('colors.amber.DEFAULT');
+    outline-offset: 2px;
+  }
+}
