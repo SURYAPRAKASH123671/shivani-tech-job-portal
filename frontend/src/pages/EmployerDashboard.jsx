@@ -19,6 +19,8 @@ import Badge from '../components/ui/Badge.jsx'
 import Button from '../components/ui/Button.jsx'
 import ChartCard from '../components/ui/ChartCard.jsx'
 import EmptyState from '../components/ui/EmptyState.jsx'
+import ConfirmDialog from '../components/ui/ConfirmDialog.jsx'
+import Toast from '../components/Toast.jsx'
 import { bucketByMonth, groupCount } from '../lib/monthlyBuckets.js'
 
 const COLORS = ['#1B2A4A', '#E8A33D', '#1D9E75', '#2E4374', '#D64545']
@@ -71,6 +73,9 @@ export default function EmployerDashboard() {
   const [submitting, setSubmitting] = useState(false)
   const [error, setError] = useState(null)
   const [message, setMessage] = useState(null)
+  const [toast, setToast] = useState(null)
+  const [confirmCloseJob, setConfirmCloseJob] = useState(null)
+  const [closingId, setClosingId] = useState(null)
 
   async function loadAll() {
     setLoading(true)
@@ -148,13 +153,19 @@ export default function EmployerDashboard() {
     }
   }
 
-  async function closeJob(id) {
+  async function confirmClose() {
+    const job = confirmCloseJob
+    setClosingId(job.id)
     try {
-      await client.patch(`/api/employer/jobs/${id}/close`)
+      await client.patch(`/api/employer/jobs/${job.id}/close`)
       const jobsRes = await client.get('/api/employer/jobs')
       setJobs(jobsRes.data)
+      setToast({ type: 'success', message: `"${job.title}" is now closed.` })
     } catch (err) {
-      setError(err.response?.data?.message || 'Could not close that job.')
+      setToast({ type: 'error', message: err.response?.data?.message || 'Could not close that job.' })
+    } finally {
+      setClosingId(null)
+      setConfirmCloseJob(null)
     }
   }
 
@@ -274,7 +285,9 @@ export default function EmployerDashboard() {
             <h2 className="font-display text-lg font-semibold text-navy">{editingJob ? 'Edit job opening' : 'Post a job opening'}</h2>
 
             <div>
-              <label className="block text-sm font-medium text-ink">Title</label>
+              <label className="block text-sm font-medium text-ink">
+                Title <span className="text-danger">*</span>
+              </label>
               <input
                 required
                 className="mt-1 w-full rounded-md border border-line px-3 py-2 text-sm focus:border-navy focus:outline-none"
@@ -408,14 +421,15 @@ export default function EmployerDashboard() {
                         <td className="px-4 py-3">
                           <button
                             onClick={() => startEditing(job)}
-                            className="mr-3 rounded-md border border-line px-3 py-1 text-xs font-medium text-ink hover:border-navy hover:text-navy"
+                            className="mr-3 text-xs font-medium text-navy hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-navy"
                           >
                             Edit
                           </button>
                           {job.status === 'OPEN' && (
                             <button
-                              onClick={() => closeJob(job.id)}
-                              className="rounded-md border border-line px-3 py-1 text-xs font-medium text-ink hover:border-navy hover:text-navy"
+                              disabled={closingId === job.id}
+                              onClick={() => setConfirmCloseJob(job)}
+                              className="text-xs font-medium text-navy hover:underline disabled:opacity-60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-navy"
                             >
                               Close
                             </button>
@@ -430,6 +444,18 @@ export default function EmployerDashboard() {
           </div>
         </>
       )}
+
+      <ConfirmDialog
+        open={!!confirmCloseJob}
+        title="Close this job opening?"
+        description={`"${confirmCloseJob?.title}" will stop accepting new applications. This can't be undone.`}
+        confirmLabel="Close job"
+        tone="danger"
+        busy={closingId === confirmCloseJob?.id}
+        onConfirm={confirmClose}
+        onCancel={() => setConfirmCloseJob(null)}
+      />
+      <Toast message={toast?.message} type={toast?.type} onDismiss={() => setToast(null)} />
     </div>
   )
 }
@@ -437,7 +463,9 @@ export default function EmployerDashboard() {
 function Select({ label, value, onChange, options, required }) {
   return (
     <div>
-      <label className="block text-xs font-medium text-muted">{label}</label>
+      <label className="block text-xs font-medium text-muted">
+        {label} {required && <span className="text-danger">*</span>}
+      </label>
       <select
         required={required}
         className="mt-1 w-full rounded-md border border-line bg-white px-3 py-2 text-sm focus:border-navy focus:outline-none"

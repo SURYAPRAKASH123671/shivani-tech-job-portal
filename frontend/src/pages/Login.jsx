@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import AuthLayout from '../components/AuthLayout.jsx'
+import Button from '../components/ui/Button.jsx'
 import { useAuth } from '../context/AuthContext.jsx'
 
 export default function Login() {
@@ -47,6 +48,7 @@ export default function Login() {
             id="email"
             type="email"
             required
+            autoComplete="username"
             className="mt-1 w-full rounded-md border border-line px-3 py-2 text-sm focus:border-navy focus:outline-none"
             value={form.email}
             onChange={(e) => setForm({ ...form, email: e.target.value })}
@@ -61,6 +63,7 @@ export default function Login() {
             id="password"
             type="password"
             required
+            autoComplete="current-password"
             className="mt-1 w-full rounded-md border border-line px-3 py-2 text-sm focus:border-navy focus:outline-none"
             value={form.password}
             onChange={(e) => setForm({ ...form, password: e.target.value })}
@@ -69,13 +72,9 @@ export default function Login() {
 
         {error && <p className="text-sm text-danger">{error}</p>}
 
-        <button
-          type="submit"
-          disabled={loading}
-          className="w-full rounded-md bg-navy py-2.5 text-sm font-medium text-white hover:bg-navy-light disabled:opacity-60"
-        >
+        <Button type="submit" disabled={loading} className="w-full">
           {loading ? 'Logging in…' : 'Log in'}
-        </button>
+        </Button>
       </form>
 
       <p className="mt-6 text-sm text-muted">

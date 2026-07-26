@@ -9,12 +9,28 @@ import Button from './Button.jsx'
  */
 export default function ConfirmDialog({ open, title, description, confirmLabel = 'Confirm', tone = 'danger', busy, onConfirm, onCancel }) {
   const confirmRef = useRef(null)
+  const cancelRef = useRef(null)
 
   useEffect(() => {
     if (!open) return
     confirmRef.current?.focus()
     function onKeyDown(e) {
-      if (e.key === 'Escape') onCancel()
+      if (e.key === 'Escape') {
+        onCancel()
+        return
+      }
+      // Trap tab focus between Cancel and Confirm - only two focusable elements in this dialog.
+      if (e.key === 'Tab') {
+        const first = cancelRef.current
+        const last = confirmRef.current
+        if (e.shiftKey && document.activeElement === first) {
+          e.preventDefault()
+          last?.focus()
+        } else if (!e.shiftKey && document.activeElement === last) {
+          e.preventDefault()
+          first?.focus()
+        }
+      }
     }
     document.addEventListener('keydown', onKeyDown)
     return () => document.removeEventListener('keydown', onKeyDown)
@@ -24,14 +40,14 @@ export default function ConfirmDialog({ open, title, description, confirmLabel =
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-labelledby="confirm-dialog-title">
-      <button type="button" aria-label="Cancel" onClick={onCancel} className="absolute inset-0 bg-ink/40" />
+      <button type="button" tabIndex={-1} aria-hidden="true" onClick={onCancel} className="absolute inset-0 bg-ink/40" />
       <div className="relative w-full max-w-sm rounded-xl border border-line bg-surface p-6 shadow-xl">
         <h2 id="confirm-dialog-title" className="font-display text-base font-semibold text-navy">
           {title}
         </h2>
         {description && <p className="mt-2 text-sm text-muted">{description}</p>}
         <div className="mt-6 flex justify-end gap-2">
-          <Button variant="secondary" size="sm" onClick={onCancel} disabled={busy}>
+          <Button ref={cancelRef} variant="secondary" size="sm" onClick={onCancel} disabled={busy}>
             Cancel
           </Button>
           <Button

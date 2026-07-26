@@ -1,6 +1,9 @@
 import { useEffect, useState } from 'react'
 import { Link } from 'react-router-dom'
 import client from '../api/client.js'
+import Breadcrumb from '../components/ui/Breadcrumb.jsx'
+import Skeleton from '../components/ui/Skeleton.jsx'
+import EmptyState from '../components/ui/EmptyState.jsx'
 
 const statusStyles = {
   APPLIED: 'bg-navy/10 text-navy',
@@ -24,31 +27,45 @@ export default function MyApplications() {
 
   return (
     <div className="mx-auto max-w-3xl px-6 py-10">
-      <h1 className="font-display text-2xl font-semibold text-navy">My applications</h1>
+      <Breadcrumb items={[{ label: 'Home', to: '/' }, { label: 'My applications' }]} />
+      <h1 className="mt-3 font-display text-2xl font-semibold text-navy">My applications</h1>
       <p className="mt-2 text-muted">Track every role you've applied to and where it stands.</p>
 
       <div className="mt-8">
         {loading ? (
-          <p className="text-muted">Loading…</p>
+          <div className="divide-y divide-line rounded-xl border border-line bg-surface">
+            {Array.from({ length: 3 }).map((_, i) => (
+              <div key={i} className="flex items-center justify-between gap-4 px-5 py-4">
+                <div className="min-w-0 flex-1">
+                  <Skeleton className="h-4 w-1/2" />
+                  <Skeleton className="mt-2 h-3 w-1/3" />
+                </div>
+                <Skeleton className="h-6 w-20 shrink-0 rounded-full" />
+              </div>
+            ))}
+          </div>
         ) : error ? (
           <p className="text-sm text-danger">{error}</p>
         ) : applications.length === 0 ? (
-          <div className="rounded-lg border border-dashed border-line bg-surface p-10 text-center">
-            <p className="font-medium text-ink">You haven't applied to anything yet</p>
-            <Link to="/jobs" className="mt-2 inline-block text-sm text-navy hover:underline">
-              Browse open roles →
-            </Link>
-          </div>
+          <EmptyState
+            title="You haven't applied to anything yet"
+            description="Once you apply to a role, you'll be able to track its status here."
+            action={
+              <Link to="/jobs" className="text-sm font-medium text-navy hover:underline">
+                Browse open roles →
+              </Link>
+            }
+          />
         ) : (
-          <div className="divide-y divide-line rounded-lg border border-line bg-surface">
+          <div className="divide-y divide-line rounded-xl border border-line bg-surface">
             {applications.map((app) => (
               <Link
                 key={app.applicationId}
                 to={`/jobs/${app.jobId}`}
-                className="flex items-center justify-between gap-4 px-5 py-4 hover:bg-canvas"
+                className="flex items-center justify-between gap-4 px-5 py-4 transition hover:bg-canvas focus-visible:outline focus-visible:outline-2 focus-visible:-outline-offset-2 focus-visible:outline-navy"
               >
-                <div>
-                  <p className="font-medium text-ink">{app.jobTitle}</p>
+                <div className="min-w-0">
+                  <p className="truncate font-medium text-ink">{app.jobTitle}</p>
                   <p className="text-sm text-muted">{app.companyName || 'Shivani Technologies'}</p>
                 </div>
                 <span

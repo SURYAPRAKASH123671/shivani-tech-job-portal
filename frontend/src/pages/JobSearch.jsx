@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { useSearchParams } from 'react-router-dom'
 import client from '../api/client.js'
 import JobCard from '../components/JobCard.jsx'
@@ -46,6 +46,17 @@ export default function JobSearch() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [drawerOpen, setDrawerOpen] = useState(false)
+  const drawerCloseRef = useRef(null)
+
+  useEffect(() => {
+    if (!drawerOpen) return
+    drawerCloseRef.current?.focus()
+    function onKeyDown(e) {
+      if (e.key === 'Escape') setDrawerOpen(false)
+    }
+    document.addEventListener('keydown', onKeyDown)
+    return () => document.removeEventListener('keydown', onKeyDown)
+  }, [drawerOpen])
 
   useEffect(() => {
     async function loadLookups() {
@@ -163,7 +174,8 @@ export default function JobSearch() {
           <div className="fixed inset-0 z-50 lg:hidden" role="dialog" aria-modal="true" aria-label="Filter jobs">
             <button
               type="button"
-              aria-label="Close filters"
+              tabIndex={-1}
+              aria-hidden="true"
               onClick={() => setDrawerOpen(false)}
               className="absolute inset-0 bg-ink/40"
             />
@@ -171,10 +183,11 @@ export default function JobSearch() {
               <div className="flex items-center justify-between">
                 <h2 className="font-display text-base font-semibold text-navy">Filters</h2>
                 <button
+                  ref={drawerCloseRef}
                   type="button"
                   onClick={() => setDrawerOpen(false)}
                   aria-label="Close"
-                  className="rounded-md p-1 text-muted hover:bg-canvas hover:text-ink"
+                  className="rounded-md p-1 text-muted hover:bg-canvas hover:text-ink focus-visible:outline focus-visible:outline-2 focus-visible:outline-navy"
                 >
                   ✕
                 </button>
@@ -208,13 +221,18 @@ export default function JobSearch() {
                   key={field}
                   type="button"
                   onClick={() => removeFilter(field)}
-                  className="inline-flex items-center gap-1.5 rounded-full border border-navy/20 bg-navy/5 px-3 py-1 text-xs font-medium text-navy hover:bg-navy/10"
+                  className="inline-flex items-center gap-1.5 rounded-full border border-navy/20 bg-navy/5 px-3 py-1 text-xs font-medium text-navy hover:bg-navy/10 focus-visible:outline focus-visible:outline-2 focus-visible:outline-navy"
+                  aria-label={`Remove filter: ${label}`}
                 >
                   {label}
                   <span aria-hidden="true">✕</span>
                 </button>
               ))}
-              <button type="button" onClick={clearFilters} className="text-xs font-medium text-muted hover:text-danger hover:underline">
+              <button
+                type="button"
+                onClick={clearFilters}
+                className="text-xs font-medium text-muted hover:text-danger hover:underline focus-visible:outline focus-visible:outline-2 focus-visible:outline-navy"
+              >
                 Clear all
               </button>
             </div>

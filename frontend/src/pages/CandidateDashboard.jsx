@@ -152,7 +152,7 @@ export default function CandidateDashboard() {
               <EmptyState title="You haven't applied to anything yet" action={<Link to="/jobs" className="text-sm text-navy hover:underline">Browse open roles →</Link>} />
             </div>
           ) : (
-            <div className="mt-3 divide-y divide-line rounded-lg border border-line bg-surface">
+            <div className="mt-3 divide-y divide-line rounded-xl border border-line bg-surface">
               {allApplications.slice(0, 5).map((app) => (
                 <Link key={app.applicationId} to={`/jobs/${app.jobId}`} className="flex items-center justify-between gap-4 px-5 py-4 hover:bg-canvas">
                   <div className="min-w-0">

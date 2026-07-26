@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { Link, useNavigate } from 'react-router-dom'
 import AuthLayout from '../components/AuthLayout.jsx'
+import Button from '../components/ui/Button.jsx'
 import { useAuth } from '../context/AuthContext.jsx'
 
 export default function RegisterCandidate() {
@@ -41,11 +42,12 @@ export default function RegisterCandidate() {
       <form onSubmit={handleSubmit} className="space-y-4">
         <div>
           <label className="block text-sm font-medium text-ink" htmlFor="fullName">
-            Full name
+            Full name <span className="text-danger">*</span>
           </label>
           <input
             id="fullName"
             required
+            autoComplete="name"
             className="mt-1 w-full rounded-md border border-line px-3 py-2 text-sm focus:border-navy focus:outline-none"
             value={form.fullName}
             onChange={update('fullName')}
@@ -54,12 +56,13 @@ export default function RegisterCandidate() {
 
         <div>
           <label className="block text-sm font-medium text-ink" htmlFor="email">
-            Email
+            Email <span className="text-danger">*</span>
           </label>
           <input
             id="email"
             type="email"
             required
+            autoComplete="email"
             className="mt-1 w-full rounded-md border border-line px-3 py-2 text-sm focus:border-navy focus:outline-none"
             value={form.email}
             onChange={update('email')}
@@ -72,6 +75,8 @@ export default function RegisterCandidate() {
           </label>
           <input
             id="phone"
+            type="tel"
+            autoComplete="tel"
             className="mt-1 w-full rounded-md border border-line px-3 py-2 text-sm focus:border-navy focus:outline-none"
             value={form.phone}
             onChange={update('phone')}
@@ -80,28 +85,26 @@ export default function RegisterCandidate() {
 
         <div>
           <label className="block text-sm font-medium text-ink" htmlFor="password">
-            Password
+            Password <span className="text-danger">*</span>
           </label>
           <input
             id="password"
             type="password"
             required
             minLength={6}
+            autoComplete="new-password"
             className="mt-1 w-full rounded-md border border-line px-3 py-2 text-sm focus:border-navy focus:outline-none"
             value={form.password}
             onChange={update('password')}
           />
+          <p className="mt-1 text-xs text-muted">At least 6 characters.</p>
         </div>
 
         {error && <p className="text-sm text-danger">{error}</p>}
 
-        <button
-          type="submit"
-          disabled={loading}
-          className="w-full rounded-md bg-navy py-2.5 text-sm font-medium text-white hover:bg-navy-light disabled:opacity-60"
-        >
+        <Button type="submit" disabled={loading} className="w-full">
           {loading ? 'Creating account…' : 'Create account'}
-        </button>
+        </Button>
       </form>
 
       <p className="mt-6 text-sm text-muted">

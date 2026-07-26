@@ -19,10 +19,10 @@ export default function Toast({ message, type = 'success', onDismiss, duration =
   if (!message) return null
 
   return (
-    <div className="fixed bottom-6 right-6 z-50 max-w-sm">
-      <div className={`flex items-start gap-3 rounded-lg border px-4 py-3 text-sm shadow-lg ${variants[type] || variants.success}`}>
+    <div className="fixed bottom-6 right-6 z-50 max-w-sm" role="status" aria-live="polite">
+      <div className={`flex items-start gap-3 rounded-xl border px-4 py-3 text-sm shadow-lg ${variants[type] || variants.success}`}>
         <span className="flex-1">{message}</span>
-        <button onClick={onDismiss} className="font-medium opacity-70 hover:opacity-100">
+        <button onClick={onDismiss} aria-label="Dismiss notification" className="font-medium opacity-70 hover:opacity-100 focus-visible:outline focus-visible:outline-2 focus-visible:outline-navy">
           ×
         </button>
       </div>

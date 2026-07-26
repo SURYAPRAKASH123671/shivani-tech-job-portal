@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { useLocation, useNavigate } from 'react-router-dom'
 import AuthLayout from '../components/AuthLayout.jsx'
+import Button from '../components/ui/Button.jsx'
 import client from '../api/client.js'
 
 export default function VerifyOtp() {
@@ -57,6 +58,7 @@ export default function VerifyOtp() {
             id="email"
             type="email"
             required
+            autoComplete="username"
             className="mt-1 w-full rounded-md border border-line px-3 py-2 text-sm focus:border-navy focus:outline-none"
             value={email}
             onChange={(e) => setEmail(e.target.value)}
@@ -71,6 +73,7 @@ export default function VerifyOtp() {
             id="otp"
             required
             inputMode="numeric"
+            autoComplete="one-time-code"
             maxLength={6}
             className="mt-1 w-full rounded-md border border-line px-3 py-2 text-sm tracking-widest focus:border-navy focus:outline-none"
             value={otp}
@@ -81,13 +84,9 @@ export default function VerifyOtp() {
         {error && <p className="text-sm text-danger">{error}</p>}
         {message && <p className="text-sm text-success">{message}</p>}
 
-        <button
-          type="submit"
-          disabled={loading}
-          className="w-full rounded-md bg-navy py-2.5 text-sm font-medium text-white hover:bg-navy-light disabled:opacity-60"
-        >
+        <Button type="submit" disabled={loading} className="w-full">
           {loading ? 'Verifying…' : 'Verify'}
-        </button>
+        </Button>
       </form>
 
       <p className="mt-6 text-sm text-muted">
@@ -96,7 +95,7 @@ export default function VerifyOtp() {
           type="button"
           onClick={resend}
           disabled={resending || !email}
-          className="font-medium text-navy hover:underline disabled:opacity-60"
+          className="font-medium text-navy hover:underline disabled:opacity-60 focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-navy"
         >
           {resending ? 'Sending…' : 'Resend it'}
         </button>
