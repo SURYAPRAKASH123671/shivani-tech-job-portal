@@ -30,6 +30,7 @@ a real deployment. None of these need code changes — they're all already wired
 | Variable | Default | Notes |
 |---|---|---|
 | `SERVER_PORT` | `8080` | Change only if your infra requires a different port |
+| `PORT` | *(falls back to `SERVER_PORT`, then `8080`)* | Most PaaS hosts (Render, Heroku, etc.) inject this automatically to tell the app which port to bind - takes priority over `SERVER_PORT` when both are present. No action needed for Docker Compose/local use. |
 | `JWT_EXPIRATION_MS` | `86400000` (24h) | Shorten for higher-security environments (e.g. 3600000 = 1h), lengthen for convenience |
 | `OTP_EXPIRY_MINUTES` | `10` | |
 | `DB_URL` | Points at the `mysql` container by service name in docker-compose | Only change if using an external managed DB |

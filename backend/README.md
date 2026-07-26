@@ -33,6 +33,7 @@ Nothing is hardcoded except safe local defaults — **set these before deploying
 | `JWT_SECRET` | placeholder string | **change this** — must be a long random value in any real deployment |
 | `JWT_EXPIRATION_MS` | `86400000` (24h) | |
 | `SERVER_PORT` | `8080` | |
+| `PORT` | falls back to `SERVER_PORT`, then `8080` | Takes priority over `SERVER_PORT` when set - most PaaS hosts (Render, Heroku, etc.) inject this automatically |
 | `MAIL_HOST` | *(empty)* | SMTP host — e.g. `smtp.gmail.com`, or SendGrid's `smtp.sendgrid.net`. Leave unset and OTP/notification emails just get logged instead of sent |
 | `MAIL_PORT` | `587` | |
 | `MAIL_USERNAME` / `MAIL_PASSWORD` | *(empty)* | SMTP credentials — for Gmail use an app password, for SendGrid the username is literally `apikey` and the password is your API key |
@@ -42,6 +43,7 @@ Nothing is hardcoded except safe local defaults — **set these before deploying
 | `CORS_ALLOWED_ORIGINS` | `*` | Comma-separated list, e.g. `https://shivanitech.in,https://www.shivanitech.in`. **Lock this down before a real deployment** — the default allows any origin |
 | `SHOW_SQL` | `false` | Set to `true` to log every SQL statement (dev debugging only) |
 | `APP_LOG_LEVEL` | `INFO` | Set to `DEBUG` for more verbose application logs |
+| `UPLOADS_DIR` | `uploads` | Where resume PDFs are written on disk - mount this as a volume in Docker so uploads survive container recreation |
 
 `ddl-auto` is set to `update`, so tables are created automatically on first boot — no manual schema needed.
 

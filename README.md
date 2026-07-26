@@ -244,16 +244,15 @@ Full endpoint-by-endpoint documentation is in **[API_REFERENCE.md](API_REFERENCE
 
 ## Project Screenshots
 
-_Screenshots to be added before final submission — see **[SCREENSHOTS.md](SCREENSHOTS.md)** for the
-exact list of what to capture and where to place the images._
+Captured from a real running instance of the app (see **[SCREENSHOTS.md](SCREENSHOTS.md)** for the
+full checklist this was based on).
 
-<!--
-![Home / Job Search](docs/screenshots/01-home.png)
-![Login](docs/screenshots/02-login.png)
-![Candidate Dashboard](docs/screenshots/03-candidate-dashboard.png)
-![Employer Dashboard](docs/screenshots/04-employer-dashboard.png)
-![Admin Dashboard](docs/screenshots/05-admin-dashboard.png)
--->
+| | |
+|---|---|
+| ![Home / Job Search](docs/screenshots/01-home.png) Home / job search | ![Login](docs/screenshots/02-login.png) Login |
+| ![Candidate Dashboard](docs/screenshots/04-candidate-dashboard.png) Candidate dashboard | ![Candidate Profile](docs/screenshots/05-candidate-profile.png) Candidate profile |
+| ![Employer Dashboard](docs/screenshots/07-employer-dashboard.png) Employer dashboard | ![Admin Dashboard](docs/screenshots/08-admin-dashboard.png) Admin dashboard |
+| ![Admin Companies](docs/screenshots/09-admin-companies.png) Admin — company verification | ![Admin Jobs](docs/screenshots/10-admin-jobs.png) Admin — all jobs |
 
 ## Future Enhancements
 
@@ -261,18 +260,21 @@ exact list of what to capture and where to place the images._
   real credentials — the code path is fully built and tested, just not connected to a live provider)
 - Automated unit/integration test suite (JUnit/Vitest) — current testing is a comprehensive
   black-box API smoke test plus manual QA, not unit-level
-- TLS/HTTPS termination in front of both services
 - Rate limiting on authentication endpoints
 - Resume viewing for employers/admins reviewing an application
 - N+1 query optimization on job listing endpoints for larger datasets
+- Move uploaded resumes to S3-compatible object storage (the current live deployment's filesystem
+  is ephemeral — see **[DEPLOYMENT_REPORT.md](DEPLOYMENT_REPORT.md)**)
 
 ## Known Limitations
 
 - No real email/SMS provider configured out of the box — see `docs/ENVIRONMENT_VARIABLES.md` to
   connect one
-- `JWT_SECRET` ships with a placeholder default — must be changed before any real deployment
+- `JWT_SECRET` ships with a placeholder default for local/manual setups — the live deployment uses
+  a real generated secret, but change the placeholder before any deployment of your own
 - No rate limiting on login/OTP endpoints yet
-- No TLS termination built in — put nginx/Caddy in front for HTTPS in production
+- TLS/HTTPS is handled automatically by Vercel and Render on the live deployment; if you self-host
+  instead (e.g. your own VPS via `docker-compose.yml`), put nginx/Caddy in front for HTTPS yourself
 
 ## License
 

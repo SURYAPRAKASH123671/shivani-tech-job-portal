@@ -9,7 +9,7 @@
 | **Live Backend API URL** | https://shivani-tech-job-portal.onrender.com (Render, Docker) |
 | **Database Provider** | TiDB Cloud Serverless (MySQL-wire-compatible) |
 | **Deployment Date** | 2026-07-26 |
-| **Status** | Live and functional. One backend fix (commit `7bf3b90`) is pushed and awaiting redeploy on Render — see **Outstanding Action** below before calling this fully closed out. |
+| **Status** | Live and fully verified. Render is running commit `7bf3b90` (the profile-bug fix below), confirmed live with 3/3 consistent `200 OK` responses. No known application bugs outstanding. |
 
 ## Demo Credentials
 
@@ -110,19 +110,18 @@ reading the code.
 - **Reproduced locally** with the exact same data shape before writing the fix, confirmed via the
   real stack trace (`could not initialize proxy - no Session`), and confirmed the fix resolves it
   (4/4 consecutive `200 OK` responses).
-- **Fixed, committed, and pushed** as commit `7bf3b90` on `main`.
+- **Fixed, committed, and pushed** as commit `7bf3b90` on `main`, **now live on Render** and
+  reconfirmed against the production URL: `GET /api/candidate/profile` returns `200 OK` (3/3
+  consecutive checks), and the actual frontend profile page renders the real 86% completion and
+  saved fields correctly.
 
-## Outstanding Action
+## Recommended Follow-Up (Optional, Not Blocking)
 
-1. **Redeploy Render on commit `7bf3b90` or later** (containing the fix above) — the production
-   backend was still running the previous commit at the time of this audit, so the candidate
-   profile bug is live in production until this redeploy happens. Auto-Deploy should pick this up
-   automatically if enabled; otherwise **Manual Deploy → Deploy latest commit**.
-2. **Tighten `CORS_ALLOWED_ORIGINS`** on Render from `*` to the exact Vercel origin
-   (`https://shivani-tech-job-portal.vercel.app`) now that the frontend URL is final. This is a
-   one-line environment variable change, no code required.
-3. Re-run the candidate profile check (`GET /api/candidate/profile` while logged in as
-   `candidate@shivanitech.in`) after the redeploy to confirm the fix is live.
+- **Tighten `CORS_ALLOWED_ORIGINS`** on Render from `*` to the exact Vercel origin
+  (`https://shivani-tech-job-portal.vercel.app`) now that the frontend URL is final. This is a
+  one-line environment variable change, no code required, and is good hygiene rather than a fix for
+  a known problem — the current wildcard setting isn't exploitable on its own since every
+  credential-bearing endpoint still requires a valid JWT regardless of origin.
 
 ## Known Limitations (Hosting-Tier, Not Application Bugs)
 
