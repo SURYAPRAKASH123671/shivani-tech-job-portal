@@ -1,11 +1,21 @@
 server:
-  port: ${SERVER_PORT:8080}
+  port: ${PORT:${SERVER_PORT:8080}}
 
 spring:
   datasource:
     url: ${DB_URL:jdbc:mysql://localhost:3306/shivani_job_portal?createDatabaseIfNotExist=true}
     username: ${DB_USERNAME:root}
     password: ${DB_PASSWORD:root}
+    driver-class-name: com.mysql.cj.jdbc.Driver
+    hikari:
+      # Positive value (HikariCP default) = fail fast: if no connection can be obtained
+      # within connection-timeout, startup throws immediately with the real underlying
+      # exception (auth failure, unknown host, SSL handshake, etc.) instead of letting it
+      # surface later as Hibernate's opaque "Unable to determine Dialect" error.
+      # (initialization-fail-timeout: 0 means the OPPOSITE - it lets the pool start even
+      # if the first connection attempt fails - so it must stay positive here.)
+      initialization-fail-timeout: 1
+      connection-timeout: 20000
   jpa:
     hibernate:
       ddl-auto: update
@@ -13,6 +23,10 @@ spring:
     properties:
       hibernate:
         format_sql: true
+        # Pinned explicitly rather than left to Hibernate 6's JDBC-metadata autodetection,
+        # which TiDB's non-standard version-reporting can confuse into the same
+        # "Unable to determine Dialect" error even when the connection itself is fine.
+        dialect: org.hibernate.dialect.MySQLDialect
     open-in-view: false
   data:
     web:
