@@ -48,6 +48,20 @@ spring:
       max-file-size: 5MB
       max-request-size: 5MB
 
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health
+  endpoint:
+    health:
+      show-details: never
+  health:
+    # Mail is intentionally optional in this app (falls back to logging when unconfigured -
+    # see EmailService) - it shouldn't drag the whole app's health status to DOWN.
+    mail:
+      enabled: false
+
 app:
   jwt:
     secret: ${JWT_SECRET:change-this-to-a-long-random-secret-value-before-deploying-anywhere}

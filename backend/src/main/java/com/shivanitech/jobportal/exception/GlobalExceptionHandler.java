@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
 import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 import org.springframework.web.multipart.MaxUploadSizeExceededException;
+import org.springframework.web.servlet.resource.NoResourceFoundException;
 
 import java.time.LocalDateTime;
 import java.util.HashMap;
@@ -26,6 +27,13 @@ public class GlobalExceptionHandler {
     @ExceptionHandler(ResourceNotFoundException.class)
     public ResponseEntity<ApiError> handleNotFound(ResourceNotFoundException ex) {
         return build(HttpStatus.NOT_FOUND, ex.getMessage(), null);
+    }
+
+    @ExceptionHandler(NoResourceFoundException.class)
+    public ResponseEntity<ApiError> handleNoResource(NoResourceFoundException ex) {
+        // Spring's normal signal for "nothing mapped here" - without this, it falls through to
+        // the generic Exception handler below and gets reported as a 500 instead of a 404.
+        return build(HttpStatus.NOT_FOUND, "Not found", null);
     }
 
     @ExceptionHandler(DuplicateResourceException.class)
