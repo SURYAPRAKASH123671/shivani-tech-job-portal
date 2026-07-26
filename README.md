@@ -5,6 +5,25 @@ and apply for jobs; companies register and post openings once verified; administ
 whole platform; internal staff get their own logins. Built, runtime-verified, and documented as a
 complete submission-ready project.
 
+## Live Deployment
+
+| | |
+|---|---|
+| **Frontend** | [shivani-tech-job-portal.vercel.app](https://shivani-tech-job-portal.vercel.app) (Vercel) |
+| **Backend API** | [shivani-tech-job-portal.onrender.com](https://shivani-tech-job-portal.onrender.com) (Render, Docker) |
+| **API docs (Swagger)** | [shivani-tech-job-portal.onrender.com/swagger-ui/index.html](https://shivani-tech-job-portal.onrender.com/swagger-ui/index.html) |
+| **Health check** | [shivani-tech-job-portal.onrender.com/actuator/health](https://shivani-tech-job-portal.onrender.com/actuator/health) |
+| **Database** | TiDB Cloud Serverless (MySQL-compatible) |
+
+Demo credentials and full deployment details (architecture, env vars, known limitations) are in
+[DEPLOYMENT_REPORT.md](DEPLOYMENT_REPORT.md).
+
+Two things worth knowing about the free-tier hosting specifically:
+- Render's free tier spins the backend down after 15 minutes idle — the first request after a lull
+  takes 30-50 seconds to cold-start. This is a hosting-tier characteristic, not an application bug.
+- Uploaded resume files don't survive a Render redeploy (ephemeral filesystem) — use the "resume by
+  URL" option for anything you want to persist through a redeploy.
+
 ## Project Overview
 
 Shivani Technologies needed an internal job portal to manage recruitment end to end — job postings,
