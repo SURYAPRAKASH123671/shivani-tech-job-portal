@@ -1,6 +1,19 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
 import { Link } from 'react-router-dom'
 import client from '../api/client.js'
+import Breadcrumb from '../components/ui/Breadcrumb.jsx'
+import WelcomeHeader from '../components/ui/WelcomeHeader.jsx'
+import Button from '../components/ui/Button.jsx'
+import Badge from '../components/ui/Badge.jsx'
+import SearchInput from '../components/ui/SearchInput.jsx'
+import Pagination from '../components/ui/Pagination.jsx'
+import ConfirmDialog from '../components/ui/ConfirmDialog.jsx'
+import Skeleton from '../components/ui/Skeleton.jsx'
+import EmptyState from '../components/ui/EmptyState.jsx'
+import Toast from '../components/Toast.jsx'
+import { useSortedData, SortableHeader } from '../lib/useSortedData.jsx'
+
+const PAGE_SIZE = 8
 
 const emptyForm = {
   title: '',
@@ -35,6 +48,8 @@ function jobToForm(job) {
 export default function AdminJobs() {
   const [jobs, setJobs] = useState([])
   const [source, setSource] = useState('') // '' | 'admin' | 'employer'
+  const [search, setSearch] = useState('')
+  const [page, setPage] = useState(0)
   const [lookups, setLookups] = useState({ categories: [], designations: [], locations: [], skills: [] })
   const [showForm, setShowForm] = useState(false)
   const [form, setForm] = useState(emptyForm)
@@ -43,6 +58,8 @@ export default function AdminJobs() {
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState(null)
   const [busyId, setBusyId] = useState(null)
+  const [toast, setToast] = useState(null)
+  const [confirmTarget, setConfirmTarget] = useState(null) // { job, action: 'close' | 'delete' }
 
   async function loadJobs() {
     setLoading(true)
@@ -62,6 +79,7 @@ export default function AdminJobs() {
 
   useEffect(() => {
     loadJobs()
+    setPage(0)
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [source])
 
@@ -82,6 +100,16 @@ export default function AdminJobs() {
     }
     loadLookups().catch(() => {})
   }, [])
+
+  const filtered = useMemo(() => {
+    const q = search.trim().toLowerCase()
+    if (!q) return jobs
+    return jobs.filter((j) => j.title.toLowerCase().includes(q) || (j.companyName || '').toLowerCase().includes(q))
+  }, [jobs, search])
+
+  const { sorted, sortKey, sortDir, toggleSort } = useSortedData(filtered, 'title')
+  const totalPages = Math.ceil(sorted.length / PAGE_SIZE) || 1
+  const pageItems = sorted.slice(page * PAGE_SIZE, page * PAGE_SIZE + PAGE_SIZE)
 
   function update(field) {
     return (e) => setForm({ ...form, [field]: e.target.value })
@@ -106,8 +134,10 @@ export default function AdminJobs() {
       }
       if (editingJob) {
         await client.put(`/api/admin/jobs/${editingJob.id}`, payload)
+        setToast({ type: 'success', message: 'Job updated.' })
       } else {
         await client.post('/api/admin/jobs', payload)
+        setToast({ type: 'success', message: 'Job posted.' })
       }
       setForm(emptyForm)
       setEditingJob(null)
@@ -120,27 +150,23 @@ export default function AdminJobs() {
     }
   }
 
-  async function closeJob(id) {
-    setBusyId(id)
+  async function confirmAction() {
+    const { job, action } = confirmTarget
+    setBusyId(job.id)
     try {
-      await client.patch(`/api/admin/jobs/${id}/close`)
+      if (action === 'close') {
+        await client.patch(`/api/admin/jobs/${job.id}/close`)
+        setToast({ type: 'success', message: 'Job closed.' })
+      } else {
+        await client.delete(`/api/admin/jobs/${job.id}`)
+        setToast({ type: 'success', message: 'Job deleted.' })
+      }
       await loadJobs()
     } catch (err) {
-      setError(err.response?.data?.message || 'Could not close that job.')
+      setToast({ type: 'error', message: err.response?.data?.message || `Could not ${action} that job.` })
     } finally {
       setBusyId(null)
-    }
-  }
-
-  async function deleteJob(id) {
-    setBusyId(id)
-    try {
-      await client.delete(`/api/admin/jobs/${id}`)
-      await loadJobs()
-    } catch (err) {
-      setError(err.response?.data?.message || 'Could not delete that job.')
-    } finally {
-      setBusyId(null)
+      setConfirmTarget(null)
     }
   }
 
@@ -161,27 +187,25 @@ export default function AdminJobs() {
 
   return (
     <div className="mx-auto max-w-6xl px-6 py-10">
-      <div className="flex items-start justify-between gap-4">
-        <div>
-          <p className="text-sm font-medium uppercase tracking-wide text-amber-dark">Admin</p>
-          <h1 className="mt-2 text-3xl">All job openings</h1>
-          <p className="mt-2 text-muted">Every job in the system, posted by admins or by verified companies.</p>
-        </div>
-        <button
-          onClick={toggleForm}
-          className="whitespace-nowrap rounded-md bg-navy px-4 py-2 text-sm font-medium text-white hover:bg-navy-light"
-        >
-          {showForm ? 'Cancel' : 'Post a job'}
-        </button>
+      <Breadcrumb items={[{ label: 'Admin', to: '/admin/dashboard' }, { label: 'All jobs' }]} />
+      <div className="mt-3">
+        <WelcomeHeader
+          eyebrow="Admin"
+          title="All job openings"
+          subtitle="Every job in the system, posted by admins or by verified companies."
+          action={<Button onClick={toggleForm}>{showForm ? 'Cancel' : 'Post a job'}</Button>}
+        />
       </div>
 
       {error && <p className="mt-4 text-sm text-danger">{error}</p>}
 
       {showForm && (
-        <form onSubmit={submitJob} className="mt-6 space-y-4 rounded-lg border border-line bg-surface p-6">
-          <h2 className="text-lg font-semibold text-navy">{editingJob ? 'Edit job opening' : 'Post a job opening'}</h2>
+        <form onSubmit={submitJob} className="mt-6 space-y-4 rounded-xl border border-line bg-surface p-6">
+          <h2 className="font-display text-lg font-semibold text-navy">{editingJob ? 'Edit job opening' : 'Post a job opening'}</h2>
           <div>
-            <label className="block text-sm font-medium text-ink">Title</label>
+            <label className="block text-sm font-medium text-ink">
+              Title <span className="text-danger">*</span>
+            </label>
             <input
               required
               className="mt-1 w-full rounded-md border border-line px-3 py-2 text-sm focus:border-navy focus:outline-none"
@@ -233,6 +257,7 @@ export default function AdminJobs() {
               <label className="block text-xs font-medium text-muted">Min salary (₹)</label>
               <input
                 type="number"
+                min="0"
                 className="mt-1 w-full rounded-md border border-line px-3 py-2 text-sm focus:border-navy focus:outline-none"
                 value={form.salaryMin}
                 onChange={update('salaryMin')}
@@ -242,6 +267,7 @@ export default function AdminJobs() {
               <label className="block text-xs font-medium text-muted">Max salary (₹)</label>
               <input
                 type="number"
+                min="0"
                 className="mt-1 w-full rounded-md border border-line px-3 py-2 text-sm focus:border-navy focus:outline-none"
                 value={form.salaryMax}
                 onChange={update('salaryMax')}
@@ -251,6 +277,7 @@ export default function AdminJobs() {
               <label className="block text-xs font-medium text-muted">Min experience (yrs)</label>
               <input
                 type="number"
+                min="0"
                 className="mt-1 w-full rounded-md border border-line px-3 py-2 text-sm focus:border-navy focus:outline-none"
                 value={form.experienceMin}
                 onChange={update('experienceMin')}
@@ -260,6 +287,7 @@ export default function AdminJobs() {
               <label className="block text-xs font-medium text-muted">Max experience (yrs)</label>
               <input
                 type="number"
+                min="0"
                 className="mt-1 w-full rounded-md border border-line px-3 py-2 text-sm focus:border-navy focus:outline-none"
                 value={form.experienceMax}
                 onChange={update('experienceMax')}
@@ -277,74 +305,82 @@ export default function AdminJobs() {
             />
           </div>
 
-          <button
-            type="submit"
-            disabled={submitting}
-            className="rounded-md bg-navy px-5 py-2 text-sm font-medium text-white hover:bg-navy-light disabled:opacity-60"
-          >
+          <Button type="submit" disabled={submitting}>
             {submitting ? (editingJob ? 'Saving…' : 'Posting…') : editingJob ? 'Save changes' : 'Post job'}
-          </button>
+          </Button>
         </form>
       )}
 
-      <div className="mt-6 flex gap-2">
-        {[
-          ['', 'All'],
-          ['admin', 'Posted by admin'],
-          ['employer', 'Posted by companies'],
-        ].map(([value, label]) => (
-          <button
-            key={value || 'ALL'}
-            onClick={() => setSource(value)}
-            className={`rounded-md border px-3 py-1.5 text-sm font-medium ${
-              source === value ? 'border-navy bg-navy text-white' : 'border-line text-ink hover:border-navy'
-            }`}
-          >
-            {label}
-          </button>
-        ))}
+      <div className="mt-6 flex flex-wrap items-center justify-between gap-3">
+        <div className="flex gap-2">
+          {[
+            ['', 'All'],
+            ['admin', 'Posted by admin'],
+            ['employer', 'Posted by companies'],
+          ].map(([value, label]) => (
+            <button
+              key={value || 'ALL'}
+              onClick={() => setSource(value)}
+              className={`rounded-md border px-3 py-1.5 text-sm font-medium ${
+                source === value ? 'border-navy bg-navy text-white' : 'border-line text-ink hover:border-navy'
+              }`}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+        <SearchInput value={search} onChange={(v) => { setSearch(v); setPage(0) }} placeholder="Search by title or company…" className="w-full sm:w-72" />
       </div>
 
-      <div className="mt-6 overflow-x-auto rounded-lg border border-line bg-surface">
+      {search && (
+        <div className="mt-3 flex items-center gap-2">
+          <button
+            onClick={() => setSearch('')}
+            className="inline-flex items-center gap-1.5 rounded-full border border-navy/20 bg-navy/5 px-3 py-1 text-xs font-medium text-navy hover:bg-navy/10"
+          >
+            "{search}" <span aria-hidden="true">✕</span>
+          </button>
+        </div>
+      )}
+
+      <div className="mt-6 max-h-[32rem] overflow-auto rounded-xl border border-line bg-surface">
         <table className="w-full text-left text-sm">
-          <thead className="border-b border-line text-muted">
+          <thead className="sticky top-0 z-10 border-b border-line bg-surface text-muted">
             <tr>
-              <th className="px-4 py-3">Title</th>
-              <th className="px-4 py-3">Company</th>
-              <th className="px-4 py-3">Location</th>
+              <SortableHeader label="Title" sortKeyName="title" currentKey={sortKey} currentDir={sortDir} onSort={toggleSort} />
+              <SortableHeader label="Company" sortKeyName="companyName" currentKey={sortKey} currentDir={sortDir} onSort={toggleSort} />
+              <SortableHeader label="Location" sortKeyName="location" currentKey={sortKey} currentDir={sortDir} onSort={toggleSort} />
               <th className="px-4 py-3">Posted by</th>
-              <th className="px-4 py-3">Status</th>
-              <th className="px-4 py-3"></th>
+              <SortableHeader label="Status" sortKeyName="status" currentKey={sortKey} currentDir={sortDir} onSort={toggleSort} />
+              <th className="px-4 py-3">Actions</th>
             </tr>
           </thead>
           <tbody>
             {loading ? (
+              Array.from({ length: 5 }).map((_, i) => (
+                <tr key={i} className="border-b border-line last:border-0">
+                  {Array.from({ length: 6 }).map((__, j) => (
+                    <td key={j} className="px-4 py-3">
+                      <Skeleton className="h-4 w-full max-w-[8rem]" />
+                    </td>
+                  ))}
+                </tr>
+              ))
+            ) : pageItems.length === 0 ? (
               <tr>
-                <td className="px-4 py-6 text-muted" colSpan={6}>
-                  Loading…
-                </td>
-              </tr>
-            ) : jobs.length === 0 ? (
-              <tr>
-                <td className="px-4 py-6 text-muted" colSpan={6}>
-                  No jobs match this filter.
+                <td className="px-4 py-8" colSpan={6}>
+                  <EmptyState title="No jobs match this filter" description="Try clearing the search or filter." />
                 </td>
               </tr>
             ) : (
-              jobs.map((job) => (
-                <tr key={job.id} className="border-b border-line last:border-0">
+              pageItems.map((job) => (
+                <tr key={job.id} className="border-b border-line last:border-0 hover:bg-canvas">
                   <td className="px-4 py-3 font-medium text-ink">{job.title}</td>
                   <td className="px-4 py-3 text-muted">{job.companyName || '—'}</td>
                   <td className="px-4 py-3 text-muted">{job.location}</td>
                   <td className="px-4 py-3 text-muted">{job.postedByAdmin ? 'Admin' : 'Company'}</td>
                   <td className="px-4 py-3">
-                    <span
-                      className={`rounded-full px-2 py-0.5 text-xs font-medium ${
-                        job.status === 'OPEN' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-700'
-                      }`}
-                    >
-                      {job.status}
-                    </span>
+                    <Badge variant={job.status === 'OPEN' ? 'success' : 'neutral'}>{job.status}</Badge>
                   </td>
                   <td className="px-4 py-3">
                     <div className="flex items-center gap-3">
@@ -361,7 +397,7 @@ export default function AdminJobs() {
                       {job.status === 'OPEN' && (
                         <button
                           disabled={busyId === job.id}
-                          onClick={() => closeJob(job.id)}
+                          onClick={() => setConfirmTarget({ job, action: 'close' })}
                           className="text-xs font-medium text-ink hover:underline disabled:opacity-60"
                         >
                           Close
@@ -369,7 +405,7 @@ export default function AdminJobs() {
                       )}
                       <button
                         disabled={busyId === job.id}
-                        onClick={() => deleteJob(job.id)}
+                        onClick={() => setConfirmTarget({ job, action: 'delete' })}
                         className="text-xs font-medium text-danger hover:underline disabled:opacity-60"
                       >
                         Delete
@@ -382,6 +418,25 @@ export default function AdminJobs() {
           </tbody>
         </table>
       </div>
+
+      <Pagination page={page} totalPages={totalPages} onChange={setPage} />
+
+      <ConfirmDialog
+        open={!!confirmTarget}
+        title={confirmTarget?.action === 'delete' ? 'Delete this job?' : 'Close this job?'}
+        description={
+          confirmTarget?.action === 'delete'
+            ? `"${confirmTarget?.job.title}" will be permanently deleted. This can't be undone.`
+            : `"${confirmTarget?.job.title}" will stop accepting applications.`
+        }
+        confirmLabel={confirmTarget?.action === 'delete' ? 'Delete' : 'Close job'}
+        tone={confirmTarget?.action === 'delete' ? 'danger' : 'primary'}
+        busy={busyId === confirmTarget?.job.id}
+        onConfirm={confirmAction}
+        onCancel={() => setConfirmTarget(null)}
+      />
+
+      <Toast message={toast?.message} type={toast?.type} onDismiss={() => setToast(null)} />
     </div>
   )
 }
@@ -389,7 +444,9 @@ export default function AdminJobs() {
 function Select({ label, value, onChange, options, required }) {
   return (
     <div>
-      <label className="block text-xs font-medium text-muted">{label}</label>
+      <label className="block text-xs font-medium text-muted">
+        {label} {required && <span className="text-danger">*</span>}
+      </label>
       <select
         required={required}
         className="mt-1 w-full rounded-md border border-line bg-white px-3 py-2 text-sm focus:border-navy focus:outline-none"
