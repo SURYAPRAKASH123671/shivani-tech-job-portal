@@ -79,7 +79,7 @@ export default function VerifyOtp() {
         </div>
 
         {error && <p className="text-sm text-danger">{error}</p>}
-        {message && <p className="text-sm text-green-700">{message}</p>}
+        {message && <p className="text-sm text-success">{message}</p>}
 
         <button
           type="submit"

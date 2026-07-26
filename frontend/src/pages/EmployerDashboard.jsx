@@ -15,6 +15,8 @@ import client from '../api/client.js'
 import Breadcrumb from '../components/ui/Breadcrumb.jsx'
 import WelcomeHeader from '../components/ui/WelcomeHeader.jsx'
 import StatCard from '../components/ui/StatCard.jsx'
+import Badge from '../components/ui/Badge.jsx'
+import Button from '../components/ui/Button.jsx'
 import ChartCard from '../components/ui/ChartCard.jsx'
 import EmptyState from '../components/ui/EmptyState.jsx'
 import { bucketByMonth, groupCount } from '../lib/monthlyBuckets.js'
@@ -184,7 +186,7 @@ export default function EmployerDashboard() {
       </div>
 
       {error && <p className="mt-4 text-sm text-danger">{error}</p>}
-      {message && <p className="mt-4 text-sm text-green-700">{message}</p>}
+      {message && <p className="mt-4 text-sm text-success">{message}</p>}
 
       {loading ? (
         <div className="mt-6 grid grid-cols-2 gap-4 lg:grid-cols-4">
@@ -268,8 +270,8 @@ export default function EmployerDashboard() {
 
       {!loading && canPost && (
         <>
-          <form onSubmit={submitJob} className="mt-8 space-y-4 rounded-lg border border-line bg-surface p-6">
-            <h2 className="text-lg font-semibold text-navy">{editingJob ? 'Edit job opening' : 'Post a job opening'}</h2>
+          <form onSubmit={submitJob} className="mt-8 space-y-4 rounded-xl border border-line bg-surface p-6">
+            <h2 className="font-display text-lg font-semibold text-navy">{editingJob ? 'Edit job opening' : 'Post a job opening'}</h2>
 
             <div>
               <label className="block text-sm font-medium text-ink">Title</label>
@@ -369,31 +371,23 @@ export default function EmployerDashboard() {
             </div>
 
             <div className="flex gap-3">
-              <button
-                type="submit"
-                disabled={submitting}
-                className="rounded-md bg-navy px-5 py-2 text-sm font-medium text-white hover:bg-navy-light disabled:opacity-60"
-              >
+              <Button type="submit" disabled={submitting}>
                 {submitting ? (editingJob ? 'Saving…' : 'Posting…') : editingJob ? 'Save changes' : 'Post job'}
-              </button>
+              </Button>
               {editingJob && (
-                <button
-                  type="button"
-                  onClick={cancelEditing}
-                  className="rounded-md border border-line px-5 py-2 text-sm font-medium text-ink hover:border-navy"
-                >
+                <Button type="button" variant="secondary" onClick={cancelEditing}>
                   Cancel
-                </button>
+                </Button>
               )}
             </div>
           </form>
 
           <div className="mt-10">
-            <h2 className="text-lg font-semibold text-navy">Your job openings</h2>
+            <h2 className="font-display text-lg font-semibold text-navy">Your job openings</h2>
             {jobs.length === 0 ? (
               <p className="mt-2 text-muted">You haven't posted any jobs yet.</p>
             ) : (
-              <div className="mt-4 overflow-x-auto rounded-lg border border-line bg-surface">
+              <div className="mt-4 overflow-x-auto rounded-xl border border-line bg-surface">
                 <table className="w-full text-left text-sm">
                   <thead className="border-b border-line text-muted">
                     <tr>
@@ -409,13 +403,7 @@ export default function EmployerDashboard() {
                         <td className="px-4 py-3 font-medium text-ink">{job.title}</td>
                         <td className="px-4 py-3 text-muted">{job.location}</td>
                         <td className="px-4 py-3">
-                          <span
-                            className={`rounded-full px-2 py-0.5 text-xs font-medium ${
-                              job.status === 'OPEN' ? 'bg-green-100 text-green-800' : 'bg-gray-100 text-gray-700'
-                            }`}
-                          >
-                            {job.status}
-                          </span>
+                          <Badge variant={job.status === 'OPEN' ? 'success' : 'neutral'}>{job.status}</Badge>
                         </td>
                         <td className="px-4 py-3">
                           <button

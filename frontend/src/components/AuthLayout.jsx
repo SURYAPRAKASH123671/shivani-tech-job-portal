@@ -28,7 +28,7 @@ export default function AuthLayout({ eyebrow, title, subtitle, children }) {
       <div className="flex items-center justify-center p-8">
         <div className="w-full max-w-sm">
           <p className="text-sm font-medium uppercase tracking-wide text-amber-dark">{eyebrow}</p>
-          <h1 className="mt-2 text-2xl">{title}</h1>
+          <h1 className="mt-2 font-display text-2xl font-semibold text-navy">{title}</h1>
           {subtitle && <p className="mt-2 text-sm text-muted">{subtitle}</p>}
           <div className="mt-8">{children}</div>
         </div>

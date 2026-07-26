@@ -24,7 +24,7 @@ export default function MyApplications() {
 
   return (
     <div className="mx-auto max-w-3xl px-6 py-10">
-      <h1 className="text-2xl">My applications</h1>
+      <h1 className="font-display text-2xl font-semibold text-navy">My applications</h1>
       <p className="mt-2 text-muted">Track every role you've applied to and where it stands.</p>
 
       <div className="mt-8">

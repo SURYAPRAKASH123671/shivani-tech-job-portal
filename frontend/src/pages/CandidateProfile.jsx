@@ -224,7 +224,7 @@ export default function CandidateProfile() {
   return (
     <div className="mx-auto max-w-4xl px-6 py-10">
       <p className="text-sm font-medium uppercase tracking-wide text-amber-dark">Candidate</p>
-      <h1 className="mt-2 text-3xl">Your profile</h1>
+      <h1 className="mt-2 font-display text-3xl font-semibold text-navy">Your profile</h1>
       <p className="mt-2 text-muted">Keep this up to date — it's what employers see when you apply.</p>
 
       <div className="mt-6 rounded-lg border border-line bg-surface p-5">
@@ -486,7 +486,7 @@ export default function CandidateProfile() {
 function Section({ title, children }) {
   return (
     <div className="rounded-lg border border-line bg-surface p-6">
-      <h2 className="text-lg font-semibold text-navy">{title}</h2>
+      <h2 className="font-display text-lg font-semibold text-navy">{title}</h2>
       <div className="mt-4 grid grid-cols-1 gap-4 sm:grid-cols-2">{children}</div>
     </div>
   )
