@@ -187,6 +187,13 @@ public class CandidateProfileService {
         List<NameResponse> skills = profile.getSkills().stream()
                 .map(s -> new NameResponse(s.getId(), s.getName()))
                 .toList();
+        // customSkills is a lazy @ElementCollection - copying it into a plain list here, while
+        // still inside the transactional method, forces initialization now. Passing the raw
+        // collection straight through (as this used to) works by coincidence when Hibernate
+        // happens to have already touched it earlier in the same request, but throws
+        // LazyInitializationException on a plain GET once the session is closed and Jackson
+        // tries to serialize it - found live in production on a fresh GET /api/candidate/profile.
+        List<String> customSkills = new ArrayList<>(profile.getCustomSkills());
 
         return CandidateProfileResponse.builder()
                 .fullName(profile.getFullName())
@@ -211,7 +218,7 @@ public class CandidateProfileService {
                 .expectedSalary(profile.getExpectedSalary())
                 .noticePeriod(profile.getNoticePeriod())
                 .skills(skills)
-                .customSkills(profile.getCustomSkills())
+                .customSkills(customSkills)
                 .preferredLocation(toName(profile.getPreferredLocation() == null ? null : profile.getPreferredLocation().getId(),
                         profile.getPreferredLocation() == null ? null : profile.getPreferredLocation().getName()))
                 .preferredDesignation(toName(profile.getPreferredDesignation() == null ? null : profile.getPreferredDesignation().getId(),
