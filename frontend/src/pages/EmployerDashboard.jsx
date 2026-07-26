@@ -1,5 +1,25 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useMemo, useState } from 'react'
+import {
+  Bar,
+  BarChart,
+  CartesianGrid,
+  Cell,
+  Pie,
+  PieChart,
+  ResponsiveContainer,
+  Tooltip,
+  XAxis,
+  YAxis,
+} from 'recharts'
 import client from '../api/client.js'
+import Breadcrumb from '../components/ui/Breadcrumb.jsx'
+import WelcomeHeader from '../components/ui/WelcomeHeader.jsx'
+import StatCard from '../components/ui/StatCard.jsx'
+import ChartCard from '../components/ui/ChartCard.jsx'
+import EmptyState from '../components/ui/EmptyState.jsx'
+import { bucketByMonth, groupCount } from '../lib/monthlyBuckets.js'
+
+const COLORS = ['#1B2A4A', '#E8A33D', '#1D9E75', '#2E4374', '#D64545']
 
 const emptyForm = {
   title: '',
@@ -42,6 +62,7 @@ export default function EmployerDashboard() {
   const [company, setCompany] = useState(null)
   const [lookups, setLookups] = useState({ categories: [], designations: [], locations: [], skills: [] })
   const [jobs, setJobs] = useState([])
+  const [applications, setApplications] = useState([])
   const [form, setForm] = useState(emptyForm)
   const [editingJob, setEditingJob] = useState(null)
   const [loading, setLoading] = useState(true)
@@ -67,8 +88,12 @@ export default function EmployerDashboard() {
         skills: skills.data,
       })
       if (companyRes.data.status === 'ACTIVE' || companyRes.data.status === 'VERIFIED') {
-        const jobsRes = await client.get('/api/employer/jobs')
+        const [jobsRes, applicationsRes] = await Promise.all([
+          client.get('/api/employer/jobs'),
+          client.get('/api/employer/applications'),
+        ])
         setJobs(jobsRes.data)
+        setApplications(applicationsRes.data)
       }
     } catch (err) {
       setError(err.response?.data?.message || 'Could not load your dashboard.')
@@ -143,22 +168,105 @@ export default function EmployerDashboard() {
     setEditingJob(null)
   }
 
-  if (loading) {
-    return <div className="mx-auto max-w-4xl px-6 py-10 text-muted">Loading…</div>
-  }
-
   const canPost = company && (company.status === 'ACTIVE' || company.status === 'VERIFIED')
 
+  const jobStatusData = groupCount(jobs, 'status')
+  const applicationsPerJob = groupCount(applications, 'jobTitle')
+  const monthlyApplications = bucketByMonth(applications, 'appliedAt')
+  const newApplications = applications.filter((a) => a.status === 'APPLIED').length
+  const recentApplicants = [...applications].sort((a, b) => new Date(b.appliedAt) - new Date(a.appliedAt)).slice(0, 5)
+
   return (
-    <div className="mx-auto max-w-4xl px-6 py-10">
-      <p className="text-sm font-medium uppercase tracking-wide text-amber-dark">Employer zone</p>
-      <h1 className="mt-2 text-3xl">{company?.name}</h1>
-      <p className="mt-2 text-muted">{statusCopy[company?.status] || ''}</p>
+    <div className="mx-auto max-w-6xl px-6 py-10">
+      <Breadcrumb items={[{ label: 'Employer', to: '/employer/dashboard' }, { label: 'Dashboard' }]} />
+      <div className="mt-3">
+        <WelcomeHeader eyebrow="Employer zone" title={loading ? 'Loading…' : company?.name} subtitle={statusCopy[company?.status] || ''} />
+      </div>
 
       {error && <p className="mt-4 text-sm text-danger">{error}</p>}
       {message && <p className="mt-4 text-sm text-green-700">{message}</p>}
 
-      {canPost && (
+      {loading ? (
+        <div className="mt-6 grid grid-cols-2 gap-4 lg:grid-cols-4">
+          {Array.from({ length: 4 }).map((_, i) => (
+            <StatCard key={i} icon="briefcase" label="" value="" loading />
+          ))}
+        </div>
+      ) : (
+        canPost && (
+          <>
+            <div className="mt-6 grid grid-cols-2 gap-4 lg:grid-cols-4">
+              <StatCard icon="briefcase" label="Jobs posted" value={jobs.length} />
+              <StatCard icon="checkCircle" label="Active jobs" value={jobs.filter((j) => j.status === 'OPEN').length} tone="success" />
+              <StatCard icon="xCircle" label="Closed jobs" value={jobs.filter((j) => j.status === 'CLOSED').length} tone="danger" />
+              <StatCard icon="layers" label="Total applications" value={applications.length} tone="amber" />
+            </div>
+
+            <div className="mt-6 grid grid-cols-1 gap-5 lg:grid-cols-2">
+              <ChartCard title="Applications per job" loading={false} isEmpty={applicationsPerJob.length === 0} emptyMessage="No applications yet - once candidates apply, this breaks down by job.">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={applicationsPerJob} layout="vertical" margin={{ left: 24 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#E2E5EA" horizontal={false} />
+                    <XAxis type="number" allowDecimals={false} tick={{ fontSize: 12, fill: '#6B7280' }} axisLine={false} tickLine={false} />
+                    <YAxis type="category" dataKey="name" tick={{ fontSize: 12, fill: '#6B7280' }} axisLine={false} tickLine={false} width={130} />
+                    <Tooltip />
+                    <Bar dataKey="value" name="Applications" fill="#1B2A4A" radius={[0, 4, 4, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </ChartCard>
+
+              <ChartCard title="Job status distribution" loading={false} isEmpty={jobStatusData.length === 0} emptyMessage="Post a job to see this breakdown.">
+                <ResponsiveContainer width="100%" height="100%">
+                  <PieChart>
+                    <Pie data={jobStatusData} dataKey="value" nameKey="name" cx="50%" cy="50%" outerRadius={90} label>
+                      {jobStatusData.map((entry, i) => (
+                        <Cell key={entry.name} fill={COLORS[i % COLORS.length]} />
+                      ))}
+                    </Pie>
+                    <Tooltip />
+                  </PieChart>
+                </ResponsiveContainer>
+              </ChartCard>
+
+              <ChartCard title="Monthly applications" subtitle="Last 6 months" loading={false} isEmpty={monthlyApplications.every((m) => m.count === 0)} emptyMessage="No applications yet.">
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={monthlyApplications}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="#E2E5EA" />
+                    <XAxis dataKey="label" tick={{ fontSize: 12, fill: '#6B7280' }} axisLine={false} tickLine={false} />
+                    <YAxis allowDecimals={false} tick={{ fontSize: 12, fill: '#6B7280' }} axisLine={false} tickLine={false} width={28} />
+                    <Tooltip />
+                    <Bar dataKey="count" name="Applications" fill="#E8A33D" radius={[4, 4, 0, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </ChartCard>
+
+              <div className="rounded-xl border border-line bg-surface p-5">
+                <p className="font-display text-sm font-semibold text-navy">Recent applicants</p>
+                <p className="mt-0.5 text-xs text-muted">{newApplications} new since applying</p>
+                {recentApplicants.length === 0 ? (
+                  <div className="mt-4">
+                    <EmptyState title="No applicants yet" description="Once candidates apply to your jobs, they'll show up here." />
+                  </div>
+                ) : (
+                  <div className="mt-3 divide-y divide-line">
+                    {recentApplicants.map((app) => (
+                      <div key={app.applicationId} className="flex items-center justify-between gap-3 py-3 text-sm">
+                        <div className="min-w-0">
+                          <p className="truncate font-medium text-ink">{app.candidateName}</p>
+                          <p className="truncate text-xs text-muted">{app.jobTitle}</p>
+                        </div>
+                        <span className="shrink-0 rounded-full bg-navy/10 px-2.5 py-1 text-xs font-medium text-navy">{app.status}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+              </div>
+            </div>
+          </>
+        )
+      )}
+
+      {!loading && canPost && (
         <>
           <form onSubmit={submitJob} className="mt-8 space-y-4 rounded-lg border border-line bg-surface p-6">
             <h2 className="text-lg font-semibold text-navy">{editingJob ? 'Edit job opening' : 'Post a job opening'}</h2>

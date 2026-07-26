@@ -55,6 +55,14 @@ public class EmployeeService {
         return toResponse(profile, user);
     }
 
+    /** Self-service "who am I" for the employee's own dashboard - not currently used by any admin flow. */
+    @Transactional(readOnly = true)
+    public EmployeeResponse getOwnProfile(String email) {
+        EmployeeProfile profile = employeeProfileRepository.findByUser_Email(email)
+                .orElseThrow(() -> new ResourceNotFoundException("No employee profile for " + email));
+        return toResponse(profile, profile.getUser());
+    }
+
     @Transactional(readOnly = true)
     public List<EmployeeResponse> listEmployees() {
         return employeeProfileRepository.findAll().stream()

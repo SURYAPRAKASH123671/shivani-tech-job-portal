@@ -60,6 +60,12 @@ export default function Navbar() {
             </Link>
           )}
 
+          {isAuthenticated && role === 'EMPLOYEE' && (
+            <Link to="/employee/dashboard" onClick={closeMenu} className="hover:text-navy-light">
+              Dashboard
+            </Link>
+          )}
+
           {isAuthenticated && role === 'ADMIN' && (
             <>
               <Link to="/admin/dashboard" onClick={closeMenu} className="hover:text-navy-light">

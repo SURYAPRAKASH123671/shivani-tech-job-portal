@@ -8,6 +8,7 @@ import Chip from '../components/ui/Chip.jsx'
 import Skeleton from '../components/ui/Skeleton.jsx'
 import EmptyState from '../components/ui/EmptyState.jsx'
 import { useSavedJobs } from '../lib/savedJobs.js'
+import { recordView } from '../lib/recentlyViewed.js'
 
 function formatSalary(min, max) {
   if (!min && !max) return 'Not disclosed'
@@ -38,7 +39,10 @@ export default function JobDetail() {
     setJob(null)
     client
       .get(`/api/jobs/${id}`)
-      .then((res) => setJob(res.data))
+      .then((res) => {
+        setJob(res.data)
+        recordView(id)
+      })
       .catch((err) => setLoadError(err.response?.data?.message || 'This job could not be found.'))
   }, [id])
 

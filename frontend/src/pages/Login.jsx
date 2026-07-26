@@ -22,6 +22,8 @@ export default function Login() {
         navigate('/admin/dashboard')
       } else if (data.role === 'EMPLOYER') {
         navigate('/employer/dashboard')
+      } else if (data.role === 'EMPLOYEE') {
+        navigate('/employee/dashboard')
       } else if (data.role === 'CANDIDATE') {
         navigate('/candidate/dashboard')
       } else {

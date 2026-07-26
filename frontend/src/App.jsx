@@ -1,3 +1,4 @@
+import { lazy, Suspense } from 'react'
 import { Route, Routes } from 'react-router-dom'
 import Navbar from './components/Navbar.jsx'
 import ProtectedRoute from './components/ProtectedRoute.jsx'
@@ -9,20 +10,30 @@ import RegisterCompany from './pages/RegisterCompany.jsx'
 import JobSearch from './pages/JobSearch.jsx'
 import JobDetail from './pages/JobDetail.jsx'
 import MyApplications from './pages/MyApplications.jsx'
-import CandidateDashboard from './pages/CandidateDashboard.jsx'
 import CandidateProfile from './pages/CandidateProfile.jsx'
-import EmployerDashboard from './pages/EmployerDashboard.jsx'
 import AdminCompanies from './pages/AdminCompanies.jsx'
 import AdminJobs from './pages/AdminJobs.jsx'
 import AdminLookups from './pages/AdminLookups.jsx'
 import AdminEmployees from './pages/AdminEmployees.jsx'
-import AdminDashboard from './pages/AdminDashboard.jsx'
 import AdminNotifications from './pages/AdminNotifications.jsx'
+
+// The 4 dashboards pull in Recharts, the single biggest contributor to bundle size - lazy-loading
+// them means a candidate searching for jobs, or anyone browsing the public site, never downloads
+// charting code they don't need.
+const CandidateDashboard = lazy(() => import('./pages/CandidateDashboard.jsx'))
+const EmployerDashboard = lazy(() => import('./pages/EmployerDashboard.jsx'))
+const EmployeeDashboard = lazy(() => import('./pages/EmployeeDashboard.jsx'))
+const AdminDashboard = lazy(() => import('./pages/AdminDashboard.jsx'))
+
+function DashboardFallback() {
+  return <div className="mx-auto max-w-6xl px-6 py-10 text-muted">Loading dashboard…</div>
+}
 
 export default function App() {
   return (
     <div className="min-h-screen bg-canvas">
       <Navbar />
+      <Suspense fallback={<DashboardFallback />}>
       <Routes>
         <Route path="/" element={<Landing />} />
         <Route path="/jobs" element={<JobSearch />} />
@@ -60,6 +71,14 @@ export default function App() {
           element={
             <ProtectedRoute allowedRole="EMPLOYER">
               <EmployerDashboard />
+            </ProtectedRoute>
+          }
+        />
+        <Route
+          path="/employee/dashboard"
+          element={
+            <ProtectedRoute allowedRole="EMPLOYEE">
+              <EmployeeDashboard />
             </ProtectedRoute>
           }
         />
@@ -112,6 +131,7 @@ export default function App() {
           }
         />
       </Routes>
+      </Suspense>
     </div>
   )
 }
