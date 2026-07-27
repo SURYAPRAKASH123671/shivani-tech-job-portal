@@ -2,6 +2,8 @@ package com.shivanitech.jobportal.seed;
 
 import com.shivanitech.jobportal.entity.Company;
 import com.shivanitech.jobportal.entity.CompanyStatus;
+import com.shivanitech.jobportal.entity.CandidateProfile;
+import com.shivanitech.jobportal.entity.EmployeeProfile;
 import com.shivanitech.jobportal.entity.Job;
 import com.shivanitech.jobportal.entity.JobCategory;
 import com.shivanitech.jobportal.entity.JobDesignation;
@@ -11,6 +13,8 @@ import com.shivanitech.jobportal.entity.Role;
 import com.shivanitech.jobportal.entity.Skill;
 import com.shivanitech.jobportal.entity.User;
 import com.shivanitech.jobportal.repository.CompanyRepository;
+import com.shivanitech.jobportal.repository.CandidateProfileRepository;
+import com.shivanitech.jobportal.repository.EmployeeProfileRepository;
 import com.shivanitech.jobportal.repository.JobCategoryRepository;
 import com.shivanitech.jobportal.repository.JobDesignationRepository;
 import com.shivanitech.jobportal.repository.JobLocationRepository;
@@ -64,6 +68,8 @@ public class DemoDataSeeder implements CommandLineRunner {
     private final JobLocationRepository locationRepository;
     private final SkillRepository skillRepository;
     private final CompanyRepository companyRepository;
+    private final CandidateProfileRepository candidateProfileRepository;
+    private final EmployeeProfileRepository employeeProfileRepository;
     private final UserRepository userRepository;
     private final JobRepository jobRepository;
     private final PasswordEncoder passwordEncoder;
@@ -77,6 +83,8 @@ public class DemoDataSeeder implements CommandLineRunner {
     @Override
     @Transactional
     public void run(String... args) {
+        ensureDemoAccounts();
+
         boolean alreadySeeded = categoryRepository.findAll().stream()
                 .anyMatch(c -> c.getName().equals(SeedCatalog.SENTINEL_CATEGORY));
 
@@ -136,6 +144,75 @@ public class DemoDataSeeder implements CommandLineRunner {
         } else {
             log.info("Demo job catalog already complete - no new jobs needed.");
         }
+    }
+
+    /**
+     * Keeps the credentials documented in DEMO_GUIDE.md usable after a clean database start.
+     * Each account is created independently, making this safe on existing installations.
+     */
+    private void ensureDemoAccounts() {
+        createUserIfMissing("admin@shivanitech.in", "admin123", Role.ADMIN, true);
+
+        if (!userRepository.existsByEmail("candidate@shivanitech.in")) {
+            User candidate = userRepository.save(User.builder()
+                    .email("candidate@shivanitech.in")
+                    .password(passwordEncoder.encode("Candidate@123"))
+                    .role(Role.CANDIDATE)
+                    .verified(true)
+                    .enabled(true)
+                    .build());
+            candidateProfileRepository.save(CandidateProfile.builder()
+                    .user(candidate)
+                    .fullName("Ananya Rao")
+                    .currentLocation("Bengaluru")
+                    .qualification("B.Tech")
+                    .experienceYears(3)
+                    .build());
+        }
+
+        if (!userRepository.existsByEmail("employee@shivanitech.in")) {
+            User employee = userRepository.save(User.builder()
+                    .email("employee@shivanitech.in")
+                    .password(passwordEncoder.encode("Employee@123"))
+                    .role(Role.EMPLOYEE)
+                    .verified(true)
+                    .enabled(true)
+                    .build());
+            employeeProfileRepository.save(EmployeeProfile.builder()
+                    .user(employee)
+                    .fullName("Priya Sharma")
+                    .designation("Recruitment Executive")
+                    .build());
+        }
+
+        if (!userRepository.existsByEmail("employer@shivanitech.in")) {
+            User employer = userRepository.save(User.builder()
+                    .email("employer@shivanitech.in")
+                    .password(passwordEncoder.encode("Employer@123"))
+                    .role(Role.EMPLOYER)
+                    .verified(true)
+                    .enabled(true)
+                    .build());
+            companyRepository.save(Company.builder()
+                    .user(employer)
+                    .name("Nexora Technologies")
+                    .contactEmail(employer.getEmail())
+                    .status(CompanyStatus.ACTIVE)
+                    .build());
+        }
+    }
+
+    private void createUserIfMissing(String email, String password, Role role, boolean verified) {
+        if (userRepository.existsByEmail(email)) {
+            return;
+        }
+        userRepository.save(User.builder()
+                .email(email)
+                .password(passwordEncoder.encode(password))
+                .role(role)
+                .verified(verified)
+                .enabled(true)
+                .build());
     }
 
     /** Generates up to {@code count} job rows (0-indexed grid position {@code startRow}..) for one category. */
